@@ -476,6 +476,16 @@ main() {
                 sed -i "s|ALLOWED_HOSTS=.*|ALLOWED_HOSTS=$DOMAIN_NAME,$SERVER_IP,localhost,127.0.0.1|g" .env
             fi
             print_status ".env configured"
+
+            # Sync PostgreSQL password with .env
+            print_info "Syncing database password..."
+            DB_PASSWORD=$(grep "^DB_PASSWORD=" .env | cut -d'=' -f2)
+            if [ -n "$DB_PASSWORD" ]; then
+                sudo -u postgres psql <<EOF
+ALTER USER inspectionapp WITH PASSWORD '$DB_PASSWORD';
+EOF
+                print_status "Database password synced"
+            fi
         fi
 
         setup_python_env
