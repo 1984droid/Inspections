@@ -9,7 +9,22 @@
     <form method="post">
         {% csrf_token %}
 
-        <h3 style="color: #2c3e50; margin-bottom: 15px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">Equipment Information</h3>
+        <h3 style="color: #2c3e50; margin-bottom: 15px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">Customer & Location</h3>
+        <div style="margin-bottom: 20px;">
+            <div style="display: flex; gap: 10px; align-items: flex-end; margin-bottom: 15px;">
+                <div style="flex: 1;">
+                    {{ form.customer.label_tag }}
+                    {{ form.customer }}
+                </div>
+                <div>
+                    <a href="{% url 'create_customer' %}" class="btn" style="white-space: nowrap;">+ New Customer</a>
+                </div>
+            </div>
+            {{ form.location.label_tag }}
+            {{ form.location }}
+        </div>
+
+        <h3 style="color: #2c3e50; margin-bottom: 15px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">Basic Equipment Information</h3>
         <div style="margin-bottom: 20px;">
             {{ form.serial_number.label_tag }}
             {{ form.serial_number }}
@@ -19,6 +34,85 @@
             {{ form.make }}
             {{ form.model.label_tag }}
             {{ form.model }}
+            {{ form.year_of_manufacture.label_tag }}
+            {{ form.year_of_manufacture }}
+        </div>
+
+        <h3 style="color: #2c3e50; margin-bottom: 15px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">ANSI A92.2 Identification Plate</h3>
+        <div style="margin-bottom: 20px;">
+            {{ form.insulation_type.label_tag }}
+            {{ form.insulation_type }}
+            {{ form.category.label_tag }}
+            {{ form.category }}
+            {{ form.rated_platform_height.label_tag }}
+            {{ form.rated_platform_height }}
+
+            <div style="margin-top: 10px;">
+                <label style="display: flex; align-items: center; gap: 8px;">
+                    {{ form.configured_for_electrical_work }}
+                    <span>Configured for electrical work (rubber gloving)</span>
+                </label>
+            </div>
+            <div style="margin-top: 8px;">
+                <label style="display: flex; align-items: center; gap: 8px;">
+                    {{ form.chassis_insulating_system }}
+                    <span>Chassis insulating system</span>
+                </label>
+            </div>
+            <div style="margin-top: 8px;">
+                <label style="display: flex; align-items: center; gap: 8px;">
+                    {{ form.upper_controls_high_resistance }}
+                    <span>Upper controls with high electrical resistance</span>
+                </label>
+            </div>
+            <div style="margin-top: 8px;">
+                <label style="display: flex; align-items: center; gap: 8px;">
+                    {{ form.material_handling_attachment }}
+                    <span>Material handling attachment</span>
+                </label>
+            </div>
+        </div>
+
+        <h3 style="color: #2c3e50; margin-bottom: 15px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">Load Capacity</h3>
+        <div style="margin-bottom: 20px;">
+            {{ form.platform_count.label_tag }}
+            {{ form.platform_count }}
+            {{ form.capacity_per_platform.label_tag }}
+            {{ form.capacity_per_platform }}
+            {{ form.capacity_total.label_tag }}
+            {{ form.capacity_total }}
+        </div>
+
+        <h3 style="color: #2c3e50; margin-bottom: 15px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">Test & Qualification</h3>
+        <div style="margin-bottom: 20px;">
+            {{ form.last_qualification_test_date.label_tag }}
+            {{ form.last_qualification_test_date }}
+            {{ form.qualification_voltage.label_tag }}
+            {{ form.qualification_voltage }}
+        </div>
+
+        <h3 style="color: #2c3e50; margin-bottom: 15px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">System Specifications</h3>
+        <div style="margin-bottom: 20px;">
+            {{ form.system_pressure.label_tag }}
+            {{ form.system_pressure }}
+            {{ form.control_system_voltage.label_tag }}
+            {{ form.control_system_voltage }}
+            {{ form.ambient_temp_range.label_tag }}
+            {{ form.ambient_temp_range }}
+        </div>
+
+        <h3 style="color: #2c3e50; margin-bottom: 15px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">Manufacturer Information</h3>
+        <div style="margin-bottom: 20px;">
+            {{ form.manufacturer_name.label_tag }}
+            {{ form.manufacturer_name }}
+            {{ form.manufacturer_city.label_tag }}
+            {{ form.manufacturer_city }}
+            {{ form.manufacturer_state.label_tag }}
+            {{ form.manufacturer_state }}
+            {{ form.manufacturer_country.label_tag }}
+            {{ form.manufacturer_country }}
+            {{ form.installed_by.label_tag }}
+            {{ form.installed_by }}
         </div>
 
         <h3 style="color: #2c3e50; margin-bottom: 15px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">Vehicle Information</h3>
@@ -33,21 +127,6 @@
             {{ form.vehicle_vin }}
             {{ form.vehicle_license_plate.label_tag }}
             {{ form.vehicle_license_plate }}
-        </div>
-
-        <h3 style="color: #2c3e50; margin-bottom: 15px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">Customer & Location</h3>
-        <div style="margin-bottom: 20px;">
-            <div style="display: flex; gap: 10px; align-items: flex-end; margin-bottom: 15px;">
-                <div style="flex: 1;">
-                    {{ form.customer.label_tag }}
-                    {{ form.customer }}
-                </div>
-                <div>
-                    <a href="{% url 'create_customer' %}" class="btn" style="white-space: nowrap;">+ New Customer</a>
-                </div>
-            </div>
-            {{ form.location.label_tag }}
-            {{ form.location }}
         </div>
 
         <button type="submit" class="btn">Create Equipment</button>
