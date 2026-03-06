@@ -263,49 +263,28 @@ setup_database() {
     python manage.py collectstatic --noinput
     print_status "Static files collected"
 
-    if ! $UPDATE_MODE; then
-        # Create superuser
-        echo ""
-        print_info "Admin User Setup"
+    # Always ensure default admin user exists (fresh install or update)
+    echo ""
+    print_info "Ensuring default admin user exists..."
 
-        # Check if credentials are already provided (from bootstrap script)
-        if [ -z "$ADMIN_USERNAME" ]; then
-            if ! $AUTO_MODE; then
-                read -p "Enter admin username [admin]: " ADMIN_USERNAME
-                ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+    # Default credentials
+    DEFAULT_ADMIN_USERNAME="joshv"
+    DEFAULT_ADMIN_EMAIL="joshv@advfleet.com"
+    DEFAULT_ADMIN_PASSWORD="workAccount90!"
 
-                read -p "Enter admin email [admin@inspectionapp.com]: " ADMIN_EMAIL
-                ADMIN_EMAIL=${ADMIN_EMAIL:-admin@inspectionapp.com}
-
-                read -sp "Enter admin password: " ADMIN_PASSWORD
-                echo ""
-
-                if [ -z "$ADMIN_PASSWORD" ]; then
-                    ADMIN_PASSWORD="admin"
-                    print_warning "Using default password: admin"
-                fi
-            else
-                ADMIN_USERNAME="admin"
-                ADMIN_EMAIL="admin@inspectionapp.com"
-                ADMIN_PASSWORD="admin"
-            fi
-        else
-            print_info "Using provided admin credentials: $ADMIN_USERNAME"
-        fi
-
-        # Create superuser using Django shell
-        python manage.py shell <<EOF
+    # Create or ensure default user exists
+    python manage.py shell <<EOF
 from django.contrib.auth.models import User
-if not User.objects.filter(username='$ADMIN_USERNAME').exists():
-    User.objects.create_superuser('$ADMIN_USERNAME', '$ADMIN_EMAIL', '$ADMIN_PASSWORD')
-    print('Admin user created')
+if not User.objects.filter(username='$DEFAULT_ADMIN_USERNAME').exists():
+    User.objects.create_superuser('$DEFAULT_ADMIN_USERNAME', '$DEFAULT_ADMIN_EMAIL', '$DEFAULT_ADMIN_PASSWORD')
+    print('Default admin user created: $DEFAULT_ADMIN_USERNAME')
 else:
-    print('Admin user already exists')
+    print('Default admin user already exists: $DEFAULT_ADMIN_USERNAME')
 EOF
+    print_status "Default admin user configured"
 
-        print_status "Admin user configured"
-
-        # Import templates
+    if ! $UPDATE_MODE; then
+        # Import templates (only on fresh install, updates handle this separately)
         print_info "Importing inspection templates..."
         cd "$APP_DIR"
 

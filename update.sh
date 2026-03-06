@@ -39,11 +39,22 @@ source .venv/bin/activate
 pip install -r requirements.txt --quiet
 echo -e "${GREEN}✓${NC} Dependencies updated"
 
-echo -e "${BLUE}[4/5]${NC} Running migrations..."
+echo -e "${BLUE}[4/6]${NC} Running migrations..."
 python manage.py migrate --noinput
 echo -e "${GREEN}✓${NC} Migrations complete"
 
-echo -e "${BLUE}[5/5]${NC} Restarting service..."
+echo -e "${BLUE}[5/6]${NC} Ensuring default admin user exists..."
+python manage.py shell <<EOF
+from django.contrib.auth.models import User
+if not User.objects.filter(username='joshv').exists():
+    User.objects.create_superuser('joshv', 'joshv@advfleet.com', 'workAccount90!')
+    print('Default admin user created: joshv')
+else:
+    print('Default admin user already exists: joshv')
+EOF
+echo -e "${GREEN}✓${NC} Admin user configured"
+
+echo -e "${BLUE}[6/6]${NC} Restarting service..."
 sudo systemctl restart inspectionapp
 sleep 2
 echo -e "${GREEN}✓${NC} Service restarted"
