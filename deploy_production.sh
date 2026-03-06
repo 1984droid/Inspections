@@ -525,6 +525,14 @@ EOF
         setup_postgresql
         setup_python_env
         create_env_file
+
+        # Ensure production settings after env file creation
+        print_info "Ensuring production database settings..."
+        sed -i "s|USE_SQLITE=.*|USE_SQLITE=False|g" .env
+        sed -i "s|DEBUG=.*|DEBUG=False|g" .env
+        sed -i "s|DB_PASSWORD=.*|DB_PASSWORD=$DB_PASSWORD|g" .env
+        print_status "Production settings confirmed"
+
         setup_database
         configure_nginx
         create_systemd_service
