@@ -71,23 +71,47 @@ def generate_package_pdf(inspection):
 
     # Equipment info table
     customer_name = inspection.equipment.customer.name if inspection.equipment.customer else 'N/A'
+    eq = inspection.equipment
 
     equipment_data = [
         ['Equipment Information', ''],
-        ['Serial Number:', inspection.equipment.serial_number or 'N/A'],
-        ['Make:', inspection.equipment.make or 'N/A'],
-        ['Model:', inspection.equipment.model or 'N/A'],
+        ['Serial Number:', eq.serial_number or 'N/A'],
+        ['Make:', eq.make or 'N/A'],
+        ['Model:', eq.model or 'N/A'],
+        ['Year of Manufacture:', eq.year_of_manufacture or 'N/A'],
         ['Customer:', customer_name],
-        ['Location:', inspection.equipment.location or 'N/A'],
+        ['Location:', eq.location or 'N/A'],
     ]
 
-    equipment_table = Table(equipment_data, colWidths=[2*inch, 4*inch])
+    # Add ANSI A92.2 identification plate data if available
+    if eq.insulation_type:
+        equipment_data.append(['Insulation Type:', eq.get_insulation_type_display()])
+    if eq.category:
+        equipment_data.append(['Category:', eq.get_category_display()])
+    if eq.rated_platform_height:
+        equipment_data.append(['Rated Platform Height:', f"{eq.rated_platform_height} ft"])
+    if eq.capacity_per_platform:
+        equipment_data.append(['Capacity per Platform:', f"{eq.capacity_per_platform} lbs"])
+    if eq.capacity_total:
+        equipment_data.append(['Total Capacity:', f"{eq.capacity_total} lbs"])
+    if eq.qualification_voltage:
+        equipment_data.append(['Qualification Voltage:', f"{eq.qualification_voltage} kV"])
+    if eq.configured_for_electrical_work:
+        equipment_data.append(['Configured for Electrical Work:', 'Yes'])
+    if eq.chassis_insulating_system:
+        equipment_data.append(['Chassis Insulating System:', 'Yes'])
+    if eq.upper_controls_high_resistance:
+        equipment_data.append(['Upper Controls High Resistance:', 'Yes'])
+
+    equipment_table = Table(equipment_data, colWidths=[2.5*inch, 3.5*inch])
     equipment_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2c3e50')),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
         ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
         ('FONTSIZE', (0, 0), (-1, 0), 12),
+        ('FONTNAME', (0, 1), (0, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 1), (-1, -1), 9),
         ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
         ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),

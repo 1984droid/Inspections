@@ -43,19 +43,32 @@ def generate_certificate_pdf(inspection):
     c.rect(2*inch, height - 3.2*inch, width - 4*inch, 1.5*inch, stroke=1, fill=0)
 
     # Equipment information
+    eq = inspection.equipment
     c.setFont("Helvetica-Bold", 14)
     y_pos = height - 4.5*inch
 
     c.drawString(1.5*inch, y_pos, "Equipment Serial Number:")
     c.setFont("Helvetica", 14)
-    c.drawString(4.5*inch, y_pos, inspection.equipment.serial_number or 'N/A')
+    c.drawString(4.5*inch, y_pos, eq.serial_number or 'N/A')
 
     y_pos -= 0.3*inch
     c.setFont("Helvetica-Bold", 14)
     c.drawString(1.5*inch, y_pos, "Make / Model:")
     c.setFont("Helvetica", 14)
-    make_model = f"{inspection.equipment.make or ''} {inspection.equipment.model or ''}".strip() or 'N/A'
+    make_model = f"{eq.make or ''} {eq.model or ''}".strip() or 'N/A'
     c.drawString(4.5*inch, y_pos, make_model)
+
+    # Add category and rated height if available
+    if eq.category or eq.rated_platform_height:
+        y_pos -= 0.3*inch
+        c.setFont("Helvetica-Bold", 14)
+        label = "Category / Rated Height:"
+        c.drawString(1.5*inch, y_pos, label)
+        c.setFont("Helvetica", 14)
+        cat_display = eq.get_category_display() if eq.category else ''
+        height_display = f"{eq.rated_platform_height} ft" if eq.rated_platform_height else ''
+        cat_height = f"{cat_display} / {height_display}".strip(' /') or 'N/A'
+        c.drawString(4.5*inch, y_pos, cat_height)
 
     # Inspection information
     y_pos -= 0.5*inch

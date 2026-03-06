@@ -22,11 +22,61 @@ class Customer(models.Model):
 
 class Equipment(models.Model):
     """Equipment being inspected (MEWP units)"""
-    # Equipment Info
+    # Basic Equipment Info
     serial_number = models.CharField(max_length=100, unique=True, db_index=True)
     asset_tag = models.CharField(max_length=100, blank=True, null=True)
-    make = models.CharField(max_length=100, blank=True, null=True)
-    model = models.CharField(max_length=100, blank=True, null=True)
+    make = models.CharField(max_length=100, blank=True, null=True, help_text="Make of aerial device")
+    model = models.CharField(max_length=100, blank=True, null=True, help_text="Model of aerial device")
+
+    # ANSI A92.2 Identification Plate Data (Figure 7)
+    year_of_manufacture = models.CharField(max_length=4, blank=True, null=True)
+
+    # Insulation Classification
+    INSULATION_CHOICES = [
+        ('insulating', 'Insulating'),
+        ('non-insulating', 'Non-Insulating'),
+    ]
+    insulation_type = models.CharField(max_length=20, choices=INSULATION_CHOICES, blank=True, null=True)
+
+    # Platform & Capacity
+    rated_platform_height = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True, help_text="Feet")
+
+    CATEGORY_CHOICES = [
+        ('a', 'Category A'),
+        ('b', 'Category B'),
+        ('c', 'Category C'),
+        ('d', 'Category D'),
+        ('e', 'Category E'),
+    ]
+    category = models.CharField(max_length=1, choices=CATEGORY_CHOICES, blank=True, null=True)
+
+    configured_for_electrical_work = models.BooleanField(default=False, help_text="Configured for electrical work rubber gloving")
+    chassis_insulating_system = models.BooleanField(default=False)
+
+    # Load Capacity
+    platform_count = models.PositiveIntegerField(default=1, help_text="Number of platforms/buckets")
+    capacity_per_platform = models.DecimalField(max_digits=7, decimal_places=2, blank=True, null=True, help_text="lbs per bucket/platform")
+    capacity_total = models.DecimalField(max_digits=7, decimal_places=2, blank=True, null=True, help_text="lbs total (both buckets/platforms)")
+
+    # Test & Qualification
+    last_qualification_test_date = models.DateField(blank=True, null=True)
+    qualification_voltage = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True, help_text="kV")
+
+    # Upper Controls & Attachments
+    upper_controls_high_resistance = models.BooleanField(default=False, help_text="Upper controls with high electrical resistance")
+    material_handling_attachment = models.BooleanField(default=False)
+
+    # System Specs
+    system_pressure = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True, help_text="PSI")
+    control_system_voltage = models.DecimalField(max_digits=5, decimal_places=1, blank=True, null=True, help_text="Volts")
+    ambient_temp_range = models.CharField(max_length=50, blank=True, null=True, help_text="e.g., -20°F to 120°F")
+
+    # Manufacturer Info
+    manufacturer_name = models.CharField(max_length=200, blank=True, null=True)
+    manufacturer_city = models.CharField(max_length=100, blank=True, null=True)
+    manufacturer_state = models.CharField(max_length=100, blank=True, null=True)
+    manufacturer_country = models.CharField(max_length=100, blank=True, null=True)
+    installed_by = models.CharField(max_length=200, blank=True, null=True)
 
     # Vehicle Info
     vehicle_year = models.CharField(max_length=4, blank=True, null=True)

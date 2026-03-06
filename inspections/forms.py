@@ -20,19 +20,59 @@ class EquipmentForm(forms.ModelForm):
     class Meta:
         model = Equipment
         fields = [
-            # Equipment Info
-            'serial_number', 'asset_tag', 'make', 'model',
+            # Basic Equipment Info
+            'serial_number', 'asset_tag', 'make', 'model', 'year_of_manufacture',
+            # ANSI A92.2 Identification Plate
+            'insulation_type', 'rated_platform_height', 'category',
+            'configured_for_electrical_work', 'chassis_insulating_system',
+            # Load Capacity
+            'platform_count', 'capacity_per_platform', 'capacity_total',
+            # Test & Qualification
+            'last_qualification_test_date', 'qualification_voltage',
+            # Upper Controls & Attachments
+            'upper_controls_high_resistance', 'material_handling_attachment',
+            # System Specs
+            'system_pressure', 'control_system_voltage', 'ambient_temp_range',
+            # Manufacturer Info
+            'manufacturer_name', 'manufacturer_city', 'manufacturer_state', 'manufacturer_country', 'installed_by',
             # Vehicle Info
             'vehicle_year', 'vehicle_make', 'vehicle_model', 'vehicle_vin', 'vehicle_license_plate',
             # Customer & Location
             'customer', 'location'
         ]
         widgets = {
-            # Equipment Info
+            # Basic Equipment Info
             'serial_number': forms.TextInput(attrs={'class': 'form-control', 'required': True, 'placeholder': 'Equipment Serial Number'}),
             'asset_tag': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Asset Tag (optional)'}),
-            'make': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Equipment Manufacturer'}),
-            'model': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Equipment Model'}),
+            'make': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Aerial Device Manufacturer'}),
+            'model': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Model Number'}),
+            'year_of_manufacture': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'YYYY'}),
+            # ANSI A92.2 Identification Plate
+            'insulation_type': forms.Select(attrs={'class': 'form-control'}),
+            'rated_platform_height': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Feet', 'step': '0.01'}),
+            'category': forms.Select(attrs={'class': 'form-control'}),
+            'configured_for_electrical_work': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'chassis_insulating_system': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            # Load Capacity
+            'platform_count': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Number of platforms/buckets', 'min': '1'}),
+            'capacity_per_platform': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'lbs per platform', 'step': '0.01'}),
+            'capacity_total': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Total capacity (lbs)', 'step': '0.01'}),
+            # Test & Qualification
+            'last_qualification_test_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'qualification_voltage': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'kV', 'step': '0.01'}),
+            # Upper Controls & Attachments
+            'upper_controls_high_resistance': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'material_handling_attachment': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            # System Specs
+            'system_pressure': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'PSI', 'step': '0.01'}),
+            'control_system_voltage': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Volts', 'step': '0.1'}),
+            'ambient_temp_range': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., -20°F to 120°F'}),
+            # Manufacturer Info
+            'manufacturer_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Manufacturer Name'}),
+            'manufacturer_city': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'City'}),
+            'manufacturer_state': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'State/Province'}),
+            'manufacturer_country': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Country'}),
+            'installed_by': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Installed by'}),
             # Vehicle Info
             'vehicle_year': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'YYYY'}),
             'vehicle_make': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ford, Chevy, etc.'}),
