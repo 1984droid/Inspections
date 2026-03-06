@@ -464,32 +464,58 @@ main() {
         # Pull latest changes
         git pull origin main 2>/dev/null || git pull origin master 2>/dev/null || print_warning "Git pull failed - continuing with local files"
 
-        # Generate unique SECRET_KEY if .env exists
-        if [ -f .env ]; then
-            print_info "Generating unique SECRET_KEY..."
-            NEW_SECRET_KEY=$(python3 -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())")
-            sed -i "s|SECRET_KEY=.*|SECRET_KEY=$NEW_SECRET_KEY|g" .env
+        # Check if .env exists, create if missing
+        if [ ! -f .env ]; then
+            print_warning ".env file not found, using defaults from repo"
+        fi
 
-            # Update ALLOWED_HOSTS
-            SERVER_IP=$(hostname -I | awk '{print $1}')
-            if [ -n "$DOMAIN_NAME" ]; then
-                sed -i "s|ALLOWED_HOSTS=.*|ALLOWED_HOSTS=$DOMAIN_NAME,$SERVER_IP,localhost,127.0.0.1|g" .env
-            fi
-            print_status ".env configured"
+        # Generate unique SECRET_KEY
+        print_info "Generating unique SECRET_KEY..."
+        NEW_SECRET_KEY=$(python3 -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())")
+        sed -i "s|SECRET_KEY=.*|SECRET_KEY=$NEW_SECRET_KEY|g" .env
 
-            # Sync PostgreSQL password with .env
-            print_info "Syncing database password..."
-            DB_PASSWORD=$(grep "^DB_PASSWORD=" .env | cut -d'=' -f2)
-            if [ -n "$DB_PASSWORD" ]; then
-                sudo -u postgres psql <<EOF
+        # Update ALLOWED_HOSTS
+        SERVER_IP=$(hostname -I | awk '{print $1}')
+        if [ -n "$DOMAIN_NAME" ]; then
+            sed -i "s|ALLOWED_HOSTS=.*|ALLOWED_HOSTS=$DOMAIN_NAME,$SERVER_IP,localhost,127.0.0.1|g" .env
+        fi
+
+        # Ensure USE_SQLITE=False for production
+        sed -i "s|USE_SQLITE=.*|USE_SQLITE=False|g" .env
+        sed -i "s|DEBUG=.*|DEBUG=False|g" .env
+        print_status ".env configured"
+
+        # Sync PostgreSQL password with .env
+        print_info "Syncing database password..."
+        DB_PASSWORD=$(grep "^DB_PASSWORD=" .env | cut -d'=' -f2 | tr -d '\r')
+        if [ -n "$DB_PASSWORD" ]; then
+            print_info "Setting PostgreSQL password for inspectionapp user..."
+            sudo -u postgres psql <<EOF
 ALTER USER inspectionapp WITH PASSWORD '$DB_PASSWORD';
 EOF
-                print_status "Database password synced"
-            fi
+            print_status "Database password synced: inspectionapp"
+        else
+            print_error "No DB_PASSWORD found in .env file!"
+            exit 1
         fi
 
         setup_python_env
         setup_database
+
+        # Import templates
+        print_info "Importing/updating inspection templates..."
+        cd "$APP_DIR"
+        source .venv/bin/activate
+        [ -f "periodic_a922.json" ] && python manage.py import_new_template periodic_a922.json
+        [ -f "cat_ab.json" ] && python manage.py import_new_template cat_ab.json
+        [ -f "cat_cde.json" ] && python manage.py import_new_template cat_cde.json
+        [ -f "uppercontrools.json" ] && python manage.py import_new_template uppercontrools.json
+        [ -f "liners.json" ] && python manage.py import_new_template liners.json
+        [ -f "ladders.json" ] && python manage.py import_new_template ladders.json
+        [ -f "chassis.json" ] && python manage.py import_new_template chassis.json
+        [ -f "load_test_structural.json" ] && python manage.py import_new_template load_test_structural.json
+        print_status "Templates imported"
+
         start_service
 
     else
