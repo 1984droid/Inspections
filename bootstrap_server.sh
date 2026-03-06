@@ -26,7 +26,7 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 # Configuration
-REPO_URL="https://github.com/1984droid/Inspections.git"  # UPDATE THIS!
+REPO_URL="git@github.com:1984droid/Inspections.git"
 APP_DIR="/srv/inspection-app"
 DOMAIN_NAME=""  # Set your domain here, or leave blank for IP-only access
 
