@@ -141,6 +141,8 @@ DO \$\$
 BEGIN
     IF NOT EXISTS (SELECT FROM pg_user WHERE usename = 'inspectionapp') THEN
         CREATE USER inspectionapp WITH PASSWORD '$DB_PASSWORD';
+    ELSE
+        ALTER USER inspectionapp WITH PASSWORD '$DB_PASSWORD';
     END IF;
 END
 \$\$;
