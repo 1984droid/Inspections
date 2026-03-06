@@ -464,6 +464,20 @@ main() {
         # Pull latest changes
         git pull origin main 2>/dev/null || git pull origin master 2>/dev/null || print_warning "Git pull failed - continuing with local files"
 
+        # Generate unique SECRET_KEY if .env exists
+        if [ -f .env ]; then
+            print_info "Generating unique SECRET_KEY..."
+            NEW_SECRET_KEY=$(python3 -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())")
+            sed -i "s|SECRET_KEY=.*|SECRET_KEY=$NEW_SECRET_KEY|g" .env
+
+            # Update ALLOWED_HOSTS
+            SERVER_IP=$(hostname -I | awk '{print $1}')
+            if [ -n "$DOMAIN_NAME" ]; then
+                sed -i "s|ALLOWED_HOSTS=.*|ALLOWED_HOSTS=$DOMAIN_NAME,$SERVER_IP,localhost,127.0.0.1|g" .env
+            fi
+            print_status ".env configured"
+        fi
+
         setup_python_env
         setup_database
         start_service
