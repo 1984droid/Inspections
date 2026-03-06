@@ -290,19 +290,32 @@ def answer_question(request, inspection_id, question_id):
 
     status = request.POST.get('status')
     notes = request.POST.get('notes', '')
+    measurement_value = request.POST.get('measurement_value', '').strip()
 
     if status not in ['pass', 'fail', 'na']:
         messages.error(request, 'Invalid status.')
         return redirect('inspection_detail', inspection_id=inspection_id)
 
+    # Prepare defaults for answer
+    answer_defaults = {
+        'status': status,
+        'notes': notes,
+    }
+
+    # Add measurement value if provided
+    if measurement_value:
+        try:
+            answer_defaults['measurement_value'] = float(measurement_value)
+        except (ValueError, TypeError):
+            answer_defaults['measurement_value'] = None
+    else:
+        answer_defaults['measurement_value'] = None
+
     # Update or create answer
     answer, created = InspectionAnswer.objects.update_or_create(
         inspection=inspection,
         question_id=question_id,
-        defaults={
-            'status': status,
-            'notes': notes,
-        }
+        defaults=answer_defaults
     )
 
     # If status is 'fail', create defect with note and photo (both required)

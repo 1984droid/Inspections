@@ -27,8 +27,8 @@
       "title": "Level Surface Stability Test (1.5x Rated Capacity)",
       "questions": [
         { "prompt": "Is the test being conducted on a firm, level surface?", "required": true },
-        { "prompt": "Rated platform capacity documented (lbs).", "required": true },
-        { "prompt": "Test load applied (1.5x rated capacity) documented (lbs).", "required": true },
+        { "prompt": "Rated platform capacity", "required": true, "type": "measurement", "unit": "lbs" },
+        { "prompt": "Test load applied (1.5x rated capacity)", "required": true, "type": "measurement", "unit": "lbs" },
         { "prompt": "Platform elevated to maximum working height with test load - Does unit remain stable?", "required": true },
         { "prompt": "Platform extended to maximum horizontal reach with test load - Does unit remain stable?", "required": true },
         { "prompt": "Is there any evidence of structural instability during level surface test?", "required": true },
@@ -40,8 +40,8 @@
       "title": "Slope Stability Test (1.33x Rated Capacity at 5° Slope)",
       "questions": [
         { "prompt": "Is the test being conducted on a firm, 5-degree slope surface?", "required": true },
-        { "prompt": "Slope angle verified and documented (degrees).", "required": true },
-        { "prompt": "Test load applied (1.33x rated capacity) documented (lbs).", "required": true },
+        { "prompt": "Slope angle verified", "required": true, "type": "measurement", "unit": "degrees" },
+        { "prompt": "Test load applied (1.33x rated capacity)", "required": true, "type": "measurement", "unit": "lbs" },
         { "prompt": "Platform elevated to maximum working height with test load on slope - Does unit remain stable?", "required": true },
         { "prompt": "Platform extended to maximum horizontal reach with test load on slope - Does unit remain stable?", "required": true },
         { "prompt": "Unit rotated/positioned in most critical orientation on slope - Does unit remain stable?", "required": true },

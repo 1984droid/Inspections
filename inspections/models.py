@@ -140,11 +140,18 @@ class SectionTemplate(models.Model):
 
 class QuestionTemplate(models.Model):
     """Question within a section"""
+    QUESTION_TYPE_CHOICES = [
+        ('pass_fail', 'Pass/Fail'),
+        ('measurement', 'Measurement'),
+    ]
+
     section = models.ForeignKey(SectionTemplate, on_delete=models.CASCADE, related_name='questions')
     order = models.IntegerField(default=0)
     code = models.CharField(max_length=100, blank=True, null=True)
     prompt = models.TextField()
     required = models.BooleanField(default=True)
+    question_type = models.CharField(max_length=20, choices=QUESTION_TYPE_CHOICES, default='pass_fail')
+    measurement_unit = models.CharField(max_length=20, blank=True, null=True, help_text="Unit for measurement (e.g., kV, mA, lbs)")
 
     class Meta:
         ordering = ['section', 'order']
@@ -227,6 +234,9 @@ class InspectionAnswer(models.Model):
     question = models.ForeignKey(QuestionTemplate, on_delete=models.PROTECT)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES)
     notes = models.TextField(blank=True, null=True)
+
+    # For measurement-type questions
+    measurement_value = models.DecimalField(max_digits=10, decimal_places=3, blank=True, null=True, help_text="Measured value")
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -97,9 +97,13 @@ class Command(BaseCommand):
                 if isinstance(question_data, str):
                     prompt = question_data
                     required = True
+                    question_type = 'pass_fail'
+                    measurement_unit = None
                 else:
                     prompt = question_data.get('prompt', question_data.get('text', ''))
                     required = question_data.get('required', True)
+                    question_type = question_data.get('type', 'pass_fail')
+                    measurement_unit = question_data.get('unit', None)
 
                 if not prompt:
                     continue
@@ -109,7 +113,9 @@ class Command(BaseCommand):
                     order=question_idx,
                     code=f'{section_code}_q{question_idx + 1}',
                     prompt=prompt,
-                    required=required
+                    required=required,
+                    question_type=question_type,
+                    measurement_unit=measurement_unit
                 )
 
         question_count = sum(s.questions.count() for s in template.sections.all())

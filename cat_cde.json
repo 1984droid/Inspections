@@ -38,8 +38,9 @@
       "code": "cde_results",
       "title": "Recorded Results",
       "questions": [
-        { "prompt": "Test voltage documented.", "required": true },
-        { "prompt": "Final current (leakage) value documented.", "required": true }
+        { "prompt": "Test voltage", "required": true, "type": "measurement", "unit": "kV" },
+        { "prompt": "Final leakage current", "required": true, "type": "measurement", "unit": "mA" },
+        { "prompt": "Did equipment pass dielectric test?", "required": true }
       ]
     }
   ],
