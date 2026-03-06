@@ -128,11 +128,17 @@ check_dependencies() {
 setup_postgresql() {
     print_info "Setting up PostgreSQL database..."
 
-    if ! $AUTO_MODE; then
-        read -p "Enter database password for 'inspectionapp' user: " DB_PASSWORD
+    # Check if DB_PASSWORD is already set (from bootstrap script)
+    if [ -z "$DB_PASSWORD" ]; then
+        if ! $AUTO_MODE; then
+            read -sp "Enter database password for 'inspectionapp' user: " DB_PASSWORD
+            echo ""
+        else
+            DB_PASSWORD="inspectionapp_secure_$(openssl rand -hex 8)"
+            print_warning "Auto-generated database password: $DB_PASSWORD"
+        fi
     else
-        DB_PASSWORD="inspectionapp_secure_$(openssl rand -hex 8)"
-        print_warning "Auto-generated database password: $DB_PASSWORD"
+        print_info "Using provided database password"
     fi
 
     # Create database user and database
@@ -188,24 +194,29 @@ create_env_file() {
     # Get server IP
     SERVER_IP=$(hostname -I | awk '{print $1}')
 
-    # Check if .env already exists (for updates) and preserve domain
-    EXISTING_DOMAIN=""
-    if [ -f .env ]; then
-        EXISTING_DOMAIN=$(grep "^ALLOWED_HOSTS=" .env | cut -d'=' -f2 | cut -d',' -f1)
-    fi
-
-    # Ask for domain name
-    if ! $AUTO_MODE; then
-        if [ -n "$EXISTING_DOMAIN" ] && [ "$EXISTING_DOMAIN" != "localhost" ] && [ "$EXISTING_DOMAIN" != "$SERVER_IP" ]; then
-            DEFAULT_DOMAIN="$EXISTING_DOMAIN"
-        else
-            DEFAULT_DOMAIN=""
+    # Check if DOMAIN_NAME is already set (from bootstrap script)
+    if [ -z "$DOMAIN_NAME" ]; then
+        # Check if .env already exists (for updates) and preserve domain
+        EXISTING_DOMAIN=""
+        if [ -f .env ]; then
+            EXISTING_DOMAIN=$(grep "^ALLOWED_HOSTS=" .env | cut -d'=' -f2 | cut -d',' -f1)
         fi
 
-        read -p "Enter domain name (leave blank to use IP only) [$DEFAULT_DOMAIN]: " DOMAIN_NAME
-        DOMAIN_NAME=${DOMAIN_NAME:-$DEFAULT_DOMAIN}
+        # Ask for domain name
+        if ! $AUTO_MODE; then
+            if [ -n "$EXISTING_DOMAIN" ] && [ "$EXISTING_DOMAIN" != "localhost" ] && [ "$EXISTING_DOMAIN" != "$SERVER_IP" ]; then
+                DEFAULT_DOMAIN="$EXISTING_DOMAIN"
+            else
+                DEFAULT_DOMAIN=""
+            fi
+
+            read -p "Enter domain name (leave blank to use IP only) [$DEFAULT_DOMAIN]: " DOMAIN_NAME
+            DOMAIN_NAME=${DOMAIN_NAME:-$DEFAULT_DOMAIN}
+        else
+            DOMAIN_NAME=""
+        fi
     else
-        DOMAIN_NAME=""
+        print_info "Using provided domain: $DOMAIN_NAME"
     fi
 
     # Build ALLOWED_HOSTS
@@ -256,24 +267,30 @@ setup_database() {
         # Create superuser
         echo ""
         print_info "Admin User Setup"
-        if ! $AUTO_MODE; then
-            read -p "Enter admin username [admin]: " ADMIN_USERNAME
-            ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
 
-            read -p "Enter admin email [admin@inspectionapp.com]: " ADMIN_EMAIL
-            ADMIN_EMAIL=${ADMIN_EMAIL:-admin@inspectionapp.com}
+        # Check if credentials are already provided (from bootstrap script)
+        if [ -z "$ADMIN_USERNAME" ]; then
+            if ! $AUTO_MODE; then
+                read -p "Enter admin username [admin]: " ADMIN_USERNAME
+                ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
 
-            read -sp "Enter admin password: " ADMIN_PASSWORD
-            echo ""
+                read -p "Enter admin email [admin@inspectionapp.com]: " ADMIN_EMAIL
+                ADMIN_EMAIL=${ADMIN_EMAIL:-admin@inspectionapp.com}
 
-            if [ -z "$ADMIN_PASSWORD" ]; then
+                read -sp "Enter admin password: " ADMIN_PASSWORD
+                echo ""
+
+                if [ -z "$ADMIN_PASSWORD" ]; then
+                    ADMIN_PASSWORD="admin"
+                    print_warning "Using default password: admin"
+                fi
+            else
+                ADMIN_USERNAME="admin"
+                ADMIN_EMAIL="admin@inspectionapp.com"
                 ADMIN_PASSWORD="admin"
-                print_warning "Using default password: admin"
             fi
         else
-            ADMIN_USERNAME="admin"
-            ADMIN_EMAIL="admin@inspectionapp.com"
-            ADMIN_PASSWORD="admin"
+            print_info "Using provided admin credentials: $ADMIN_USERNAME"
         fi
 
         # Create superuser using Django shell

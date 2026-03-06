@@ -28,7 +28,11 @@ NC='\033[0m'
 # Configuration
 REPO_URL="https://github.com/1984droid/Inspections.git"
 APP_DIR="/srv/inspection-app"
-DOMAIN_NAME=""  # Set your domain here, or leave blank for IP-only access
+DEFAULT_DOMAIN="mouseion.advfleet.com"
+DEFAULT_ADMIN_USERNAME="joshv"
+DEFAULT_ADMIN_EMAIL="joshv@advfleet.com"
+DEFAULT_ADMIN_PASSWORD="workAccount90!"
+DEFAULT_DB_PASSWORD="InspectionDB2024!"
 
 echo -e "${BLUE}========================================================================${NC}"
 echo -e "${BLUE}A92.2 INSPECTION APP - SERVER BOOTSTRAP${NC}"
@@ -154,26 +158,28 @@ if [ ! -f "$APP_DIR/.env" ] || $REDEPLOY_MODE; then
     echo ""
 
     # Ask for domain
-    read -p "Enter domain name (leave blank to use IP only): " USER_DOMAIN
-    if [ -n "$USER_DOMAIN" ]; then
-        DOMAIN_NAME="$USER_DOMAIN"
-        print_info "Will configure for domain: $DOMAIN_NAME"
-    else
-        print_info "Will configure for IP-only access"
-    fi
+    read -p "Enter domain name [$DEFAULT_DOMAIN]: " USER_DOMAIN
+    DOMAIN_NAME=${USER_DOMAIN:-$DEFAULT_DOMAIN}
+    print_info "Will configure for domain: $DOMAIN_NAME"
 
     echo ""
 
     # Ask for admin credentials
-    read -p "Enter admin username [admin]: " ADMIN_USERNAME
-    ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+    read -p "Enter admin username [$DEFAULT_ADMIN_USERNAME]: " ADMIN_USERNAME
+    ADMIN_USERNAME=${ADMIN_USERNAME:-$DEFAULT_ADMIN_USERNAME}
 
-    read -p "Enter admin email [admin@inspectionapp.com]: " ADMIN_EMAIL
-    ADMIN_EMAIL=${ADMIN_EMAIL:-admin@inspectionapp.com}
+    read -p "Enter admin email [$DEFAULT_ADMIN_EMAIL]: " ADMIN_EMAIL
+    ADMIN_EMAIL=${ADMIN_EMAIL:-$DEFAULT_ADMIN_EMAIL}
 
-    read -sp "Enter admin password [admin]: " ADMIN_PASSWORD
+    read -sp "Enter admin password [$DEFAULT_ADMIN_PASSWORD]: " ADMIN_PASSWORD
     echo ""
-    ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
+    ADMIN_PASSWORD=${ADMIN_PASSWORD:-$DEFAULT_ADMIN_PASSWORD}
+
+    # Ask for database password
+    read -sp "Enter database password [$DEFAULT_DB_PASSWORD]: " USER_DB_PASSWORD
+    echo ""
+    DB_PASSWORD=${USER_DB_PASSWORD:-$DEFAULT_DB_PASSWORD}
+    export DB_PASSWORD
 
     echo ""
 else
@@ -189,6 +195,13 @@ echo ""
 
 cd "$APP_DIR"
 chmod +x deploy_production.sh
+
+# Export variables for deploy script
+export DB_PASSWORD
+export ADMIN_USERNAME
+export ADMIN_EMAIL
+export ADMIN_PASSWORD
+export DOMAIN_NAME
 
 if [ -f ".env" ] && [ "$REDEPLOY_MODE" = false ]; then
     # Update mode - preserve existing config
