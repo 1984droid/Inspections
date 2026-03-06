@@ -70,12 +70,14 @@ def generate_package_pdf(inspection):
     story.append(Spacer(1, 0.5*inch))
 
     # Equipment info table
+    customer_name = inspection.equipment.customer.name if inspection.equipment.customer else 'N/A'
+
     equipment_data = [
         ['Equipment Information', ''],
         ['Serial Number:', inspection.equipment.serial_number or 'N/A'],
         ['Make:', inspection.equipment.make or 'N/A'],
         ['Model:', inspection.equipment.model or 'N/A'],
-        ['Customer:', inspection.equipment.customer_name or 'N/A'],
+        ['Customer:', customer_name],
         ['Location:', inspection.equipment.location or 'N/A'],
     ]
 
@@ -100,6 +102,7 @@ def generate_package_pdf(inspection):
         ['Inspector:', inspection.inspector.get_full_name() or inspection.inspector.username],
         ['Date:', inspection.started_at.strftime('%Y-%m-%d %H:%M')],
         ['Certificate #:', inspection.certificate_number or 'N/A'],
+        ['Reference:', inspection.reference or 'N/A'],
         ['Overall Result:', inspection.overall_result.upper() if inspection.overall_result else 'N/A'],
     ]
 
@@ -116,6 +119,87 @@ def generate_package_pdf(inspection):
     ]))
 
     story.append(inspection_table)
+
+    # Page break before executive summary
+    story.append(PageBreak())
+
+    # ===== EXECUTIVE SUMMARY =====
+    story.append(Paragraph("Executive Summary", heading_style))
+    story.append(Spacer(1, 0.2*inch))
+
+    # Calculate statistics
+    total_questions = inspection.answers.count()
+    pass_count = inspection.answers.filter(status='pass').count()
+    fail_count = inspection.answers.filter(status='fail').count()
+    na_count = inspection.answers.filter(status='na').count()
+    defect_count = inspection.defects.count()
+
+    # Summary text
+    result_color = '#27ae60' if inspection.overall_result == 'pass' else '#e74c3c' if inspection.overall_result == 'fail' else '#95a5a6'
+    result_text = inspection.overall_result.upper() if inspection.overall_result else 'N/A'
+
+    summary_text = f"""
+    This inspection has been completed with an overall result of <b><font color="{result_color}">{result_text}</font></b>.
+    A total of {total_questions} questions were evaluated across all sections.
+    """
+    story.append(Paragraph(summary_text, normal_style))
+    story.append(Spacer(1, 0.2*inch))
+
+    # Statistics table
+    stats_data = [
+        ['Inspection Statistics', 'Count', 'Percentage'],
+        ['✓ Pass', str(pass_count), f'{(pass_count/total_questions*100) if total_questions > 0 else 0:.1f}%'],
+        ['✗ Fail', str(fail_count), f'{(fail_count/total_questions*100) if total_questions > 0 else 0:.1f}%'],
+        ['— N/A', str(na_count), f'{(na_count/total_questions*100) if total_questions > 0 else 0:.1f}%'],
+        ['Total Questions', str(total_questions), '100%'],
+        ['Defects Recorded', str(defect_count), '—'],
+    ]
+
+    stats_table = Table(stats_data, colWidths=[3*inch, 1.5*inch, 1.5*inch])
+    stats_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#3498db')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+        ('ALIGN', (1, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTNAME', (0, 4), (-1, 4), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('BACKGROUND', (0, 1), (0, 1), colors.HexColor('#d4edda')),  # Pass row green
+        ('BACKGROUND', (0, 2), (0, 2), colors.HexColor('#f8d7da')),  # Fail row red
+        ('BACKGROUND', (0, 3), (0, 3), colors.HexColor('#f0f0f0')),  # N/A row gray
+    ]))
+
+    story.append(stats_table)
+    story.append(Spacer(1, 0.3*inch))
+
+    # Key findings
+    if fail_count > 0:
+        story.append(Paragraph("<b>Key Findings:</b>", subheading_style))
+        story.append(Paragraph(
+            f"• {fail_count} item(s) failed inspection",
+            normal_style
+        ))
+        story.append(Paragraph(
+            f"• {defect_count} defect(s) documented with photos and notes",
+            normal_style
+        ))
+        story.append(Paragraph(
+            "• Detailed defect information can be found in the Defects section of this report",
+            normal_style
+        ))
+    else:
+        story.append(Paragraph("<b>Key Findings:</b>", subheading_style))
+        story.append(Paragraph(
+            "• All inspected items passed or were marked as not applicable",
+            normal_style
+        ))
+        story.append(Paragraph(
+            "• No defects were identified during this inspection",
+            normal_style
+        ))
 
     # Page break before details
     story.append(PageBreak())
