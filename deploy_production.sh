@@ -418,7 +418,7 @@ Type=simple
 User=$APP_USER
 WorkingDirectory=$APP_DIR
 Environment="PATH=$APP_DIR/.venv/bin"
-ExecStart=$APP_DIR/.venv/bin/gunicorn --workers 3 --bind 0.0.0.0:$DJANGO_PORT inspection_project.wsgi:application
+ExecStart=$APP_DIR/.venv/bin/gunicorn --workers 3 --bind 0.0.0.0:$DJANGO_PORT config.wsgi:application
 Restart=always
 RestartSec=10
 
