@@ -1,0 +1,68 @@
+{
+  "template": {
+    "code": "a92.2-2021-test-dielectric-cat-cde",
+    "name": "ANSI A92.2 (2021) Dielectric Test - Category C/D/E",
+    "version": "v1",
+    "kind": "test"
+  },
+  "rules": {
+    "fail_requires_defect_note": true,
+    "fail_requires_photo": true,
+    "photo_scope": "per_defect"
+  },
+  "sections": [
+    {
+      "code": "cde_bonding_and_oil",
+      "title": "Setup - Bonding and Hydraulic Lines",
+      "questions": [
+        { "prompt": "Platform-end conductive material bonded per procedure.", "required": true },
+        { "prompt": "Hydraulic lines crossing insulating boom section/system filled with oil by operating unit prior to test.", "required": true }
+      ]
+    },
+    {
+      "code": "cde_shunting",
+      "title": "Setup - Shunting",
+      "questions": [
+        { "prompt": "If continuity across joints cannot be ensured: shunting installed per procedure.", "required": true },
+        { "prompt": "If chassis insulating system provided: chassis insulating system shunted per procedure.", "required": true }
+      ]
+    },
+    {
+      "code": "cde_test_method_and_config",
+      "title": "Test Configuration and Method",
+      "questions": [
+        { "prompt": "Test method selected and performed (AC/DC Table 2 insulated-from-ground / alternate DC grounded method / energized AC line contact Table 3).", "required": true }
+      ]
+    },
+    {
+      "code": "cde_results",
+      "title": "Recorded Results",
+      "questions": [
+        { "prompt": "Test voltage documented.", "required": true },
+        { "prompt": "Final current (leakage) value documented.", "required": true }
+      ]
+    }
+  ],
+  "fields": [
+    {
+      "code": "test_method",
+      "label": "Test Method Used",
+      "type": "choice",
+      "required": true,
+      "options": [
+        "AC/DC test insulated from ground (Table 2, Fig 2 or 4)",
+        "Alternate DC grounded method (Table 2, Fig 2A)",
+        "Energized AC line contact test (Table 3)"
+      ]
+    },
+    { "code": "test_voltage", "label": "Test Voltage", "type": "number", "required": true, "unit_hint": "kV" },
+    { "code": "final_current", "label": "Final Leakage Current", "type": "number", "required": true, "unit_hint": "mA" },
+    {
+      "code": "test_result",
+      "label": "Overall Dielectric Test Result",
+      "type": "passfail",
+      "required": true
+    },
+    { "code": "notes", "label": "General Notes", "type": "text", "required": false }
+  ]
+}

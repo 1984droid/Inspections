@@ -1,0 +1,69 @@
+================================================================================
+                        PORT CONFIGURATION
+================================================================================
+
+IMPORTANT: This app uses PORT 6000 (not the default 8000)
+
+This is because another server is already using port 8000 on this machine.
+
+
+HOW TO START THE SERVER:
+================================================================================
+
+Option 1 - Use the run script (EASIEST):
+
+    run.bat
+
+Option 2 - Manual command:
+
+    python manage.py runserver 6000
+
+
+ACCESS THE APP:
+================================================================================
+
+Open your browser to:
+
+    http://localhost:6000
+    http://127.0.0.1:6000
+
+
+CONFIGURATION:
+================================================================================
+
+The port is configured in .env file:
+
+    SERVER_PORT=6000
+
+You can change this to 6001 or any other port if needed.
+
+
+ALTERNATIVE PORTS:
+================================================================================
+
+If port 6000 is also in use, try:
+
+    python manage.py runserver 6001
+
+Or update .env:
+
+    SERVER_PORT=6001
+
+
+ADMIN INTERFACE:
+================================================================================
+
+Django admin is available at:
+
+    http://localhost:6000/admin
+
+
+QUICK REFERENCE:
+================================================================================
+
+Start server:       run.bat  (or: python manage.py runserver 6000)
+Stop server:        Press CTRL+C in the terminal
+Access app:         http://localhost:6000
+Admin panel:        http://localhost:6000/admin
+
+================================================================================

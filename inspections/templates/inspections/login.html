@@ -1,0 +1,21 @@
+{% extends 'inspections/base.html' %}
+
+{% block title %}Login - Inspection App{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 500px; margin: 50px auto;">
+    <h2>Login</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div>
+            <label>Username:</label>
+            <input type="text" name="username" class="form-control" required>
+        </div>
+        <div>
+            <label>Password:</label>
+            <input type="password" name="password" class="form-control" required>
+        </div>
+        <button type="submit" class="btn">Login</button>
+    </form>
+</div>
+{% endblock %}

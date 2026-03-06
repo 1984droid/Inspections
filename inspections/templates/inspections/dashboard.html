@@ -1,0 +1,47 @@
+{% extends 'inspections/base.html' %}
+
+{% block title %}Dashboard - Inspection App{% endblock %}
+
+{% block content %}
+<h1>Dashboard</h1>
+
+<div class="card">
+    <h2>Quick Actions</h2>
+    <a href="{% url 'new_inspection' %}" class="btn">New Inspection</a>
+    <a href="{% url 'inspection_list' %}" class="btn btn-secondary">Search Inspections</a>
+</div>
+
+<div class="card">
+    <h2>Recent Inspections</h2>
+    {% if recent_inspections %}
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Equipment</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Result</th>
+                <th>Started</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for inspection in recent_inspections %}
+            <tr>
+                <td>{{ inspection.id }}</td>
+                <td>{{ inspection.equipment.serial_number }}</td>
+                <td>{{ inspection.template.get_kind_display }}</td>
+                <td>{{ inspection.get_status_display }}</td>
+                <td>{{ inspection.get_overall_result_display|default:"—" }}</td>
+                <td>{{ inspection.started_at|date:"Y-m-d H:i" }}</td>
+                <td><a href="{% url 'inspection_detail' inspection.id %}">View</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No recent inspections.</p>
+    {% endif %}
+</div>
+{% endblock %}

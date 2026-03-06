@@ -1,0 +1,57 @@
+{% extends 'inspections/base.html' %}
+
+{% block title %}Create Equipment{% endblock %}
+
+{% block content %}
+<h1>Create New Equipment</h1>
+
+<div class="card">
+    <form method="post">
+        {% csrf_token %}
+
+        <h3 style="color: #2c3e50; margin-bottom: 15px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">Equipment Information</h3>
+        <div style="margin-bottom: 20px;">
+            {{ form.serial_number.label_tag }}
+            {{ form.serial_number }}
+            {{ form.asset_tag.label_tag }}
+            {{ form.asset_tag }}
+            {{ form.make.label_tag }}
+            {{ form.make }}
+            {{ form.model.label_tag }}
+            {{ form.model }}
+        </div>
+
+        <h3 style="color: #2c3e50; margin-bottom: 15px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">Vehicle Information</h3>
+        <div style="margin-bottom: 20px;">
+            {{ form.vehicle_year.label_tag }}
+            {{ form.vehicle_year }}
+            {{ form.vehicle_make.label_tag }}
+            {{ form.vehicle_make }}
+            {{ form.vehicle_model.label_tag }}
+            {{ form.vehicle_model }}
+            {{ form.vehicle_vin.label_tag }}
+            {{ form.vehicle_vin }}
+            {{ form.vehicle_license_plate.label_tag }}
+            {{ form.vehicle_license_plate }}
+        </div>
+
+        <h3 style="color: #2c3e50; margin-bottom: 15px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">Customer & Location</h3>
+        <div style="margin-bottom: 20px;">
+            <div style="display: flex; gap: 10px; align-items: flex-end; margin-bottom: 15px;">
+                <div style="flex: 1;">
+                    {{ form.customer.label_tag }}
+                    {{ form.customer }}
+                </div>
+                <div>
+                    <a href="{% url 'create_customer' %}" class="btn" style="white-space: nowrap;">+ New Customer</a>
+                </div>
+            </div>
+            {{ form.location.label_tag }}
+            {{ form.location }}
+        </div>
+
+        <button type="submit" class="btn">Create Equipment</button>
+        <a href="{% url 'new_inspection' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

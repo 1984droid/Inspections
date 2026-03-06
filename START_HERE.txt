@@ -1,0 +1,94 @@
+================================================================================
+                    A92.2 INSPECTION APP - START HERE
+================================================================================
+
+QUICK START (No PostgreSQL needed):
+================================================================================
+
+Your .env file is already configured to use SQLite (simpler database).
+
+Just run:
+
+    setup.bat
+
+Then follow the prompts to:
+  - Create admin user
+  - Import templates
+  - Start the server
+
+Open browser to: http://localhost:6000
+
+
+FILES TO READ:
+================================================================================
+
+1. QUICK_FIX.md          <- Read this first! (SQLite vs PostgreSQL)
+2. QUICKSTART.md         <- Quick reference guide
+3. README.md             <- Full documentation
+4. INSTALL_POSTGRES.md   <- If you want PostgreSQL later
+
+
+WHAT HAPPENED?
+================================================================================
+
+PostgreSQL was not running, so I configured the app to use SQLite instead.
+
+SQLite:
+  ✅ No installation needed
+  ✅ Perfect for testing
+  ✅ Works immediately
+
+PostgreSQL:
+  ⚠️  Needs installation
+  ✅ Better for production
+  ✅ Switch later if needed (see INSTALL_POSTGRES.md)
+
+
+NEXT STEPS:
+================================================================================
+
+1. Run: setup.bat
+
+2. When prompted, create admin username and password
+
+3. Wait for template import to complete
+
+4. Run: run.bat (or: python manage.py runserver 6000)
+
+5. Open browser to: http://localhost:6000
+
+6. Login with your admin credentials
+
+7. Click "New Inspection" to get started!
+
+
+TROUBLESHOOTING:
+================================================================================
+
+If setup.bat fails:
+
+  Check which step failed and run manually:
+
+    python manage.py migrate
+    python manage.py createsuperuser
+    python manage.py import_a92_templates
+    python manage.py runserver 6000
+
+
+If you want PostgreSQL instead:
+
+  1. See INSTALL_POSTGRES.md
+  2. Change .env: USE_SQLITE=False
+  3. Run: setup.bat again
+
+
+NEED HELP?
+================================================================================
+
+- Open QUICK_FIX.md in any text editor
+- Or ask for help!
+
+
+================================================================================
+Ready? Run: setup.bat
+================================================================================

@@ -1,0 +1,56 @@
+{
+  "template": {
+    "code": "a92.2-2021-test-aerial-ladders-vertical-towers",
+    "name": "ANSI A92.2 (2021) Test - Aerial Ladders & Vertical Towers (Insulating Boom Sections)",
+    "version": "v1",
+    "kind": "test"
+  },
+  "rules": {
+    "fail_requires_defect_note": true,
+    "fail_requires_photo": true,
+    "photo_scope": "per_defect"
+  },
+  "sections": [
+    {
+      "code": "positioning",
+      "title": "Positioning and Configuration",
+      "questions": [
+        {
+          "prompt": "Aerial ladder test conducted with upper section extended only enough for platform to drop into operating position (or to predetermined marked extension length).",
+          "required": true
+        },
+        {
+          "prompt": "Vertical tower tested with platform rails raised within the platform and unit in normally stored position (or as manufacturer recommends).",
+          "required": true
+        },
+        {
+          "prompt": "If unit is rated as insulating by manufacturer: dielectric test performed in accordance with Category C/D/E procedure (5.4.3.2).",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "fields": [
+    {
+      "code": "unit_type",
+      "label": "Unit Type",
+      "type": "choice",
+      "required": true,
+      "options": ["Aerial Ladder", "Vertical Tower"]
+    },
+    {
+      "code": "insulating_rated",
+      "label": "Manufacturer rates unit as insulating",
+      "type": "choice",
+      "required": true,
+      "options": ["Yes", "No"]
+    },
+    {
+      "code": "test_result",
+      "label": "Overall Module Result",
+      "type": "passfail",
+      "required": true
+    },
+    { "code": "notes", "label": "Notes", "type": "text", "required": false }
+  ]
+}

@@ -1,0 +1,65 @@
+{% extends 'inspections/base.html' %}
+
+{% block title %}New Inspection{% endblock %}
+
+{% block content %}
+<h1>New Inspection</h1>
+
+<div class="card">
+    <h2>Select Equipment and Template</h2>
+    <form method="post">
+        {% csrf_token %}
+
+        <div>
+            <label><strong>Equipment:</strong></label>
+            <select name="equipment_id" class="form-control" required>
+                <option value="">-- Select Equipment --</option>
+                {% for equipment in equipment_list %}
+                <option value="{{ equipment.id }}" {% if selected_equipment_id and equipment.id|stringformat:"s" == selected_equipment_id %}selected{% endif %}>
+                    {{ equipment.serial_number }} - {{ equipment.make }} {{ equipment.model }}
+                    {% if equipment.customer %}({{ equipment.customer.name }}){% endif %}
+                </option>
+                {% endfor %}
+            </select>
+            <a href="{% url 'create_equipment' %}" class="btn btn-secondary" style="margin-top: 10px;">Create New Equipment</a>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <label><strong>Inspection Type:</strong></label>
+            <select name="template_id" class="form-control" required>
+                {% if not default_template %}
+                <option value="">-- Select Inspection Type --</option>
+                {% endif %}
+                {% for template in main_templates %}
+                <option value="{{ template.id }}" {% if default_template and template.id == default_template.id %}selected{% endif %}>
+                    {{ template.name }} ({{ template.get_kind_display }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <label><strong>Reference (optional):</strong></label>
+            <input type="text" name="reference" class="form-control" placeholder="Inspector reference or job number">
+        </div>
+
+        {% if test_templates %}
+        <div style="margin-top: 20px; border: 1px solid #ddd; padding: 15px; border-radius: 5px; background: #f8f9fa;">
+            <label><strong>Optional: Add Dielectric Test Modules</strong></label>
+            <p style="color: #666; font-size: 14px; margin-bottom: 10px;">Select which dielectric test(s) to run with this inspection:</p>
+
+            {% for test in test_templates %}
+            <div style="margin-bottom: 8px;">
+                <label style="font-weight: normal; cursor: pointer;">
+                    <input type="checkbox" name="test_modules" value="{{ test.id }}" style="margin-right: 8px;">
+                    {{ test.name }}
+                </label>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <button type="submit" class="btn" style="margin-top: 20px;">Start Inspection</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,235 @@
+{
+  "template": {
+    "code": "a92.2-2021-periodic",
+    "name": "ANSI A92.2 (2021) Periodic Inspection",
+    "version": "v1",
+    "kind": "periodic"
+  },
+  "rules": {
+    "fail_requires_defect_note": true,
+    "fail_requires_photo": true,
+    "photo_scope": "per_defect"
+  },
+  "sections": [
+
+    {
+      "code": "frequent_visual_walkaround",
+      "title": "Frequent Inspection - Visual Walkaround",
+      "questions": [
+        { "prompt": "Machine inspected for damaged components, cracks, corrosion, excessive wear, and loose/missing fasteners.", "required": true },
+        { "prompt": "Pins, bolts, fasteners, locking devices, and covers present and properly secured.", "required": true }
+      ]
+    },
+
+    {
+      "code": "frequent_controls",
+      "title": "Frequent Inspection - Controls and Interlocks",
+      "questions": [
+        { "prompt": "All controls operate properly.", "required": true },
+        { "prompt": "Interlocks function correctly.", "required": true },
+        { "prompt": "Controls return to neutral when released.", "required": true },
+        { "prompt": "Control functions are clearly marked.", "required": true }
+      ]
+    },
+
+    {
+      "code": "frequent_safety_devices",
+      "title": "Frequent Inspection - Safety Devices",
+      "questions": [
+        { "prompt": "Visual safety devices operate properly.", "required": true },
+        { "prompt": "Audible safety devices operate properly.", "required": true }
+      ]
+    },
+
+    {
+      "code": "frequent_insulating_components",
+      "title": "Frequent Inspection - Insulating Components",
+      "questions": [
+        { "prompt": "Fiberglass and insulating components free of visible damage.", "required": true },
+        { "prompt": "Insulating components clean and free of contamination.", "required": true }
+      ]
+    },
+
+    {
+      "code": "frequent_markings",
+      "title": "Frequent Inspection - Markings and Decals",
+      "questions": [
+        { "prompt": "Operational and instructional markings present and legible.", "required": true }
+      ]
+    },
+
+    {
+      "code": "frequent_hydraulics",
+      "title": "Frequent Inspection - Hydraulic and Pneumatic Systems",
+      "questions": [
+        { "prompt": "Hydraulic and pneumatic systems show no excessive leakage.", "required": true },
+        { "prompt": "Hydraulic and pneumatic components show no visible deterioration.", "required": true }
+      ]
+    },
+
+    {
+      "code": "frequent_electrical",
+      "title": "Frequent Inspection - Electrical Systems",
+      "questions": [
+        { "prompt": "Electrical systems related to the aerial device function properly.", "required": true },
+        { "prompt": "Electrical components show no deterioration, dirt accumulation, or moisture.", "required": true }
+      ]
+    },
+
+    {
+      "code": "frequent_function_test",
+      "title": "Frequent Inspection - Functional Tests",
+      "questions": [
+        { "prompt": "Stabilizers deploy and operate correctly.", "required": true },
+        { "prompt": "Boom and aerial device functions operate through full range of motion from lower controls.", "required": true },
+        { "prompt": "Emergency stop functions operate correctly.", "required": true }
+      ]
+    },
+
+    {
+      "code": "frequent_placards",
+      "title": "Frequent Inspection - Placards and Test Expiration",
+      "questions": [
+        { "prompt": "Periodic inspection placard is current.", "required": true },
+        { "prompt": "Electrical test placard is current.", "required": true }
+      ]
+    },
+
+    {
+      "code": "periodic_structure",
+      "title": "Periodic Inspection - Structural Components",
+      "questions": [
+        { "prompt": "Structural members free of deformation, cracks, or corrosion.", "required": true }
+      ]
+    },
+
+    {
+      "code": "periodic_wear_components",
+      "title": "Periodic Inspection - Wear Components",
+      "questions": [
+        { "prompt": "Pins, bearings, shafts, gears, rollers, and locking devices free of excessive wear or distortion.", "required": true },
+        { "prompt": "Chains, sprockets, wire ropes, synthetic ropes, and sheaves free of wear, cracks, or distortion.", "required": true }
+      ]
+    },
+
+    {
+      "code": "periodic_hydraulic_settings",
+      "title": "Periodic Inspection - Hydraulic System Settings",
+      "questions": [
+        { "prompt": "Hydraulic and pneumatic relief valves set correctly.", "required": true },
+        { "prompt": "Hydraulic system oil level correct.", "required": true }
+      ]
+    },
+
+    {
+      "code": "periodic_hoses_fittings",
+      "title": "Periodic Inspection - Hoses and Fittings",
+      "questions": [
+        { "prompt": "Hydraulic and pneumatic hoses and fittings free of leaks.", "required": true },
+        { "prompt": "Hoses and fittings show no abnormal deformation or excessive abrasion.", "required": true }
+      ]
+    },
+
+    {
+      "code": "periodic_power_components",
+      "title": "Periodic Inspection - Pumps, Motors, and Generators",
+      "questions": [
+        { "prompt": "Compressors, pumps, motors, and generators secure and free of leaks.", "required": true },
+        { "prompt": "No unusual noises, vibration, overheating, or loss of operating speed.", "required": true }
+      ]
+    },
+
+    {
+      "code": "periodic_valves",
+      "title": "Periodic Inspection - Hydraulic and Pneumatic Valves",
+      "questions": [
+        { "prompt": "Hydraulic and pneumatic valves operate correctly.", "required": true },
+        { "prompt": "Valve housings free of cracks and leaks.", "required": true },
+        { "prompt": "Valve spools operate freely and are not sticking.", "required": true }
+      ]
+    },
+
+    {
+      "code": "periodic_vacuum_system",
+      "title": "Periodic Inspection - Vacuum Limiting Systems",
+      "questions": [
+        { "prompt": "Vacuum limiting system visually inspected and functioning per manufacturer instructions.", "required": true }
+      ]
+    },
+
+    {
+      "code": "periodic_cylinders",
+      "title": "Periodic Inspection - Cylinders and Holding Valves",
+      "questions": [
+        { "prompt": "Hydraulic and pneumatic cylinders operate correctly and show no visible damage.", "required": true },
+        { "prompt": "Holding valves operate correctly.", "required": true }
+      ]
+    },
+
+    {
+      "code": "periodic_filters",
+      "title": "Periodic Inspection - Hydraulic and Pneumatic Filters",
+      "questions": [
+        { "prompt": "Filters clean and free of contamination.", "required": true },
+        { "prompt": "No foreign material present in the system indicating component deterioration.", "required": true }
+      ]
+    },
+
+    {
+      "code": "periodic_electrical",
+      "title": "Periodic Inspection - Electrical Components",
+      "questions": [
+        { "prompt": "Electrical systems and components free of deterioration or excessive wear.", "required": true }
+      ]
+    },
+
+    {
+      "code": "periodic_performance_test",
+      "title": "Periodic Inspection - Boom Performance",
+      "questions": [
+        { "prompt": "All boom movements operate correctly and smoothly.", "required": true }
+      ]
+    },
+
+    {
+      "code": "periodic_fasteners",
+      "title": "Periodic Inspection - Fasteners",
+      "questions": [
+        { "prompt": "Bolts and fasteners tight and secure according to manufacturer recommendations.", "required": true }
+      ]
+    },
+
+    {
+      "code": "periodic_welds",
+      "title": "Periodic Inspection - Welds",
+      "questions": [
+        { "prompt": "Welds inspected and free of cracks or defects.", "required": true }
+      ]
+    },
+
+    {
+      "code": "periodic_markings",
+      "title": "Periodic Inspection - Identification and Markings",
+      "questions": [
+        { "prompt": "All identification, operational, and instructional markings present and legible.", "required": true }
+      ]
+    },
+
+    {
+      "code": "periodic_insulation_condition",
+      "title": "Periodic Inspection - Insulating System Condition",
+      "questions": [
+        { "prompt": "Insulating components clean and free of conditions that could compromise insulation.", "required": true }
+      ]
+    },
+
+    {
+      "code": "periodic_upper_control_resistance",
+      "title": "Periodic Inspection - High Resistance Upper Controls",
+      "questions": [
+        { "prompt": "Upper controls high-resistance components maintained per manufacturer requirements.", "required": true }
+      ]
+    }
+
+  ]
+}

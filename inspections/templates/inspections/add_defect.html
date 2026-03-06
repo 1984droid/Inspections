@@ -1,0 +1,17 @@
+{% extends 'inspections/base.html' %}
+
+{% block title %}Add Defect{% endblock %}
+
+{% block content %}
+<h1>Add Defect - Inspection #{{ inspection.id }}</h1>
+
+<div class="card">
+    <h2>Record a Defect</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn">Save Defect & Add Photo</button>
+        <a href="{% url 'inspection_detail' inspection.id %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

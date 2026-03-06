@@ -1,0 +1,28 @@
+{% extends 'inspections/base.html' %}
+
+{% block title %}Create Customer{% endblock %}
+
+{% block content %}
+<h1>Create New Customer</h1>
+
+<div class="card">
+    <form method="post">
+        {% csrf_token %}
+
+        <h3 style="color: #2c3e50; margin-bottom: 15px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">Customer Information</h3>
+        <div style="margin-bottom: 20px;">
+            {{ form.name.label_tag }}
+            {{ form.name }}
+            {{ form.address.label_tag }}
+            {{ form.address }}
+            {{ form.phone.label_tag }}
+            {{ form.phone }}
+            {{ form.email.label_tag }}
+            {{ form.email }}
+        </div>
+
+        <button type="submit" class="btn">Create Customer</button>
+        <a href="{% url 'create_equipment' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

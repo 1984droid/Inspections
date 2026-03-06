@@ -1,0 +1,51 @@
+{
+  "template": {
+    "code": "a92.2-2021-test-chassis-insulating-system",
+    "name": "ANSI A92.2 (2021) Test - Chassis Insulating System",
+    "version": "v1",
+    "kind": "test"
+  },
+  "rules": {
+    "fail_requires_defect_note": true,
+    "fail_requires_photo": true,
+    "photo_scope": "per_defect"
+  },
+  "sections": [
+    {
+      "code": "setup",
+      "title": "Setup",
+      "questions": [
+        { "prompt": "Voltage applied to the metal above the insulating system.", "required": true },
+        { "prompt": "All hydraulic lines crossing the insulating system filled with oil during the test.", "required": true },
+        { "prompt": "MEWP connected through shielded cable to current meter and then connected to ground.", "required": true },
+        { "prompt": "Booms positioned for test configuration per procedure (Figure 3 reference).", "required": true }
+      ]
+    },
+    {
+      "code": "execution",
+      "title": "Test Execution",
+      "questions": [
+        { "prompt": "Selected AC or DC chassis insulating system test performed for full duration.", "required": true },
+        { "prompt": "Test voltage documented.", "required": true },
+        { "prompt": "Final current documented.", "required": true }
+      ]
+    }
+  ],
+  "fields": [
+    {
+      "code": "test_method",
+      "label": "Test Method Used",
+      "type": "choice",
+      "required": true,
+      "options": [
+        "AC 35 kV for 3 minutes (max 3 mA)",
+        "DC 50 kV for 3 minutes (max 100 µA)"
+      ]
+    },
+    { "code": "test_voltage", "label": "Test Voltage", "type": "number", "required": true, "unit_hint": "kV" },
+    { "code": "duration", "label": "Duration", "type": "number", "required": true, "unit_hint": "minutes" },
+    { "code": "final_current", "label": "Final Current", "type": "number", "required": true, "unit_hint": "mA or µA (match method)" },
+    { "code": "test_result", "label": "Overall Test Result", "type": "passfail", "required": true },
+    { "code": "notes", "label": "Notes", "type": "text", "required": false }
+  ]
+}

@@ -1,0 +1,60 @@
+================================================================================
+                        PORT CHANGED TO 3000
+================================================================================
+
+IMPORTANT: Chrome blocks port 6000, so we're now using port 3000 instead.
+
+
+HOW TO START THE SERVER:
+================================================================================
+
+    run.bat
+
+Or manually:
+
+    python manage.py runserver 3000
+
+
+ACCESS THE APP:
+================================================================================
+
+Open your browser to:
+
+    http://localhost:3000/login/
+    http://localhost:3000/admin/
+
+
+WHAT CHANGED:
+================================================================================
+
+Updated files:
+  - .env (SERVER_PORT=3000)
+  - run.bat (uses port 3000)
+
+All documentation references updated to port 3000.
+
+
+QUICK START:
+================================================================================
+
+1. Run:    run.bat
+
+2. Open:   http://localhost:3000/login/
+
+3. Login with your superuser credentials
+
+4. Click "New Inspection" to get started!
+
+
+IF PORT 3000 IS ALSO IN USE:
+================================================================================
+
+Try another port:
+
+    python manage.py runserver 4000
+
+Or update .env:
+
+    SERVER_PORT=4000
+
+================================================================================

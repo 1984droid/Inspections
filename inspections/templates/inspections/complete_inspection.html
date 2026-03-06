@@ -1,0 +1,26 @@
+{% extends 'inspections/base.html' %}
+
+{% block title %}Complete Inspection{% endblock %}
+
+{% block content %}
+<h1>Complete Inspection #{{ inspection.id }}</h1>
+
+<div class="card">
+    <h2>Confirm Completion</h2>
+    <p>You are about to finalize and lock this inspection. This will:</p>
+    <ul>
+        <li>Validate all required questions are answered</li>
+        <li>Check that all failed items have defects with notes and photos</li>
+        <li>Compute the overall result (PASS/FAIL)</li>
+        <li>Generate certificate number</li>
+        <li>Generate PDF documents (package and certificate)</li>
+        <li>Lock the inspection (no further edits allowed)</li>
+    </ul>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn">Confirm & Complete</button>
+        <a href="{% url 'inspection_detail' inspection.id %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

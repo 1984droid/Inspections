@@ -1,0 +1,52 @@
+{% extends 'inspections/base.html' %}
+
+{% block title %}Inspections{% endblock %}
+
+{% block content %}
+<h1>Search Inspections</h1>
+
+<div class="card">
+    <form method="get">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search by serial #, cert #, customer..." class="form-control" style="display: inline-block; width: 400px;">
+        <button type="submit" class="btn">Search</button>
+    </form>
+</div>
+
+<div class="card">
+    <h2>Inspections</h2>
+    {% if inspections %}
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Equipment</th>
+                <th>Type</th>
+                <th>Inspector</th>
+                <th>Status</th>
+                <th>Result</th>
+                <th>Cert #</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for inspection in inspections %}
+            <tr>
+                <td>{{ inspection.id }}</td>
+                <td>{{ inspection.equipment.serial_number }}</td>
+                <td>{{ inspection.template.get_kind_display }}</td>
+                <td>{{ inspection.inspector.username }}</td>
+                <td>{{ inspection.get_status_display }}</td>
+                <td>{{ inspection.get_overall_result_display|default:"—" }}</td>
+                <td>{{ inspection.certificate_number|default:"—" }}</td>
+                <td>{{ inspection.started_at|date:"Y-m-d" }}</td>
+                <td><a href="{% url 'inspection_detail' inspection.id %}">View</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No inspections found.</p>
+    {% endif %}
+</div>
+{% endblock %}

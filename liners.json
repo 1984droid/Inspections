@@ -1,0 +1,55 @@
+{
+  "template": {
+    "code": "a92.2-2021-test-insulating-liner",
+    "name": "ANSI A92.2 (2021) Test - Insulating Liner",
+    "version": "v1",
+    "kind": "test"
+  },
+  "rules": {
+    "fail_requires_defect_note": true,
+    "fail_requires_photo": true,
+    "photo_scope": "per_defect"
+  },
+  "sections": [
+    {
+      "code": "method_1_conductive_liquid",
+      "title": "Method 1 - Conductive Liquid (if used)",
+      "questions": [
+        { "prompt": "Liner tested in conductive liquid with liquid level within 6 inches of top (inside and outside).", "required": false },
+        { "prompt": "Test completed without breakdown through liner material.", "required": false }
+      ]
+    },
+    {
+      "code": "method_2_alternate_electrodes",
+      "title": "Method 2 - Alternate Electrodes (if used)",
+      "questions": [
+        { "prompt": "Inside and outside surfaces (to within 6 inches of top) tested using conductive electrodes (wet sponge/towel/foil) adhering closely to surfaces.", "required": false },
+        { "prompt": "All sides and bottom tested, including corners (one surface at a time if procedure ensures full coverage).", "required": false },
+        { "prompt": "Test completed without puncture/breakdown of liner wall.", "required": false }
+      ]
+    }
+  ],
+  "fields": [
+    {
+      "code": "test_method",
+      "label": "Test Method Used",
+      "type": "choice",
+      "required": true,
+      "options": [
+        "Conductive liquid immersion",
+        "Alternate electrodes (wet sponge/towel/foil)"
+      ]
+    },
+    {
+      "code": "test_type",
+      "label": "Voltage Type",
+      "type": "choice",
+      "required": true,
+      "options": ["AC", "DC"]
+    },
+    { "code": "test_voltage", "label": "Test Voltage", "type": "number", "required": true, "unit_hint": "kV (AC min 35 for 1 min, DC min 100 for 3 min)" },
+    { "code": "duration", "label": "Duration", "type": "number", "required": true, "unit_hint": "minutes" },
+    { "code": "test_result", "label": "Overall Test Result", "type": "passfail", "required": true },
+    { "code": "notes", "label": "Notes", "type": "text", "required": false }
+  ]
+}

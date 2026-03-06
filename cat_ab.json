@@ -1,0 +1,75 @@
+{
+  "template": {
+    "code": "a92.2-2021-test-dielectric-cat-a-b",
+    "name": "ANSI A92.2 (2021) Dielectric Test - Category A/B",
+    "version": "v1",
+    "kind": "test"
+  },
+  "rules": {
+    "fail_requires_defect_note": true,
+    "fail_requires_photo": true,
+    "photo_scope": "per_defect"
+  },
+  "sections": [
+    {
+      "code": "ab_bonding_and_platform",
+      "title": "Setup - Bonding & Platform",
+      "questions": [
+        { "prompt": "Upper-end conductive material bonded per procedure.", "required": true },
+        { "prompt": "If non-conductive platform (Category A): metal liner installed and bonded prior to test.", "required": true }
+      ]
+    },
+    {
+      "code": "ab_pretest_system_checks",
+      "title": "Setup - Pre-test System Checks",
+      "questions": [
+        { "prompt": "Vacuum limiting system visually inspected and function verified per manufacturer manual.", "required": true },
+        { "prompt": "Lower test electrode system complete and continuity confirmed (intact).", "required": true },
+        { "prompt": "Hydraulic lines crossing insulating boom section/system filled with oil by operating unit prior to test.", "required": true },
+        { "prompt": "If continuity across joints cannot be ensured: shunting installed per procedure.", "required": true },
+        { "prompt": "If chassis insulating system equipped: chassis insulating system shunted per procedure.", "required": true }
+      ]
+    },
+    {
+      "code": "ab_grounding_and_metering",
+      "title": "Setup - Grounding & Metering",
+      "questions": [
+        { "prompt": "Vehicle chassis grounded.", "required": true },
+        { "prompt": "Current meter receptacle connected through shielded cable to current meter (when used) and then to ground.", "required": true },
+        { "prompt": "Boom positioned per manufacturer/procedure for test configuration.", "required": true }
+      ]
+    },
+    {
+      "code": "ab_test_method_and_results",
+      "title": "Test Method and Recorded Results",
+      "questions": [
+        { "prompt": "Test method selected and performed (AC Table 2 / DC Table 2 / Quarterly before-use line test Table 3 / Energized AC line contact Table 3).", "required": true },
+        { "prompt": "Test voltage documented.", "required": true },
+        { "prompt": "Final current (leakage) value documented.", "required": true }
+      ]
+    }
+  ],
+  "fields": [
+    {
+      "code": "test_method",
+      "label": "Test Method Used",
+      "type": "choice",
+      "required": true,
+      "options": [
+        "AC test (Table 2)",
+        "DC test (Table 2)",
+        "Quarterly before-use line test (Table 3)",
+        "Energized AC line contact test (Table 3)"
+      ]
+    },
+    { "code": "test_voltage", "label": "Test Voltage", "type": "number", "required": true, "unit_hint": "kV" },
+    { "code": "final_current", "label": "Final Leakage Current", "type": "number", "required": true, "unit_hint": "mA" },
+    {
+      "code": "test_result",
+      "label": "Overall Dielectric Test Result",
+      "type": "passfail",
+      "required": true
+    },
+    { "code": "notes", "label": "General Notes", "type": "text", "required": false }
+  ]
+}

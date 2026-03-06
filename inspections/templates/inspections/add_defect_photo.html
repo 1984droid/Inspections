@@ -1,0 +1,36 @@
+{% extends 'inspections/base.html' %}
+
+{% block title %}Add Defect Photo{% endblock %}
+
+{% block content %}
+<h1>Add Photo to Defect #{{ defect.id }}</h1>
+
+<div class="card">
+    <h2>Defect Details</h2>
+    <p><strong>Note:</strong> {{ defect.note }}</p>
+</div>
+
+<div class="card">
+    <h2>Upload Photo</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" name="add_another" value="1" class="btn">Save & Add Another Photo</button>
+        <button type="submit" class="btn btn-secondary">Save & Return to Inspection</button>
+    </form>
+</div>
+
+{% if existing_photos %}
+<div class="card">
+    <h2>Existing Photos ({{ existing_photos.count }})</h2>
+    {% for photo in existing_photos %}
+    <div style="display: inline-block; margin: 10px;">
+        <img src="{{ photo.image.url }}" style="max-width: 200px; max-height: 200px; border: 1px solid #ddd;">
+        {% if photo.caption %}<p>{{ photo.caption }}</p>{% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<a href="{% url 'inspection_detail' inspection.id %}" class="btn btn-secondary">Return to Inspection</a>
+{% endblock %}

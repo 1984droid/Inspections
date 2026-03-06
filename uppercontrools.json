@@ -1,0 +1,48 @@
+{
+  "template": {
+    "code": "a92.2-2021-test-upper-controls-high-resistance",
+    "name": "ANSI A92.2 (2021) Test - Upper Controls High Electrical Resistance Components",
+    "version": "v1",
+    "kind": "test"
+  },
+  "rules": {
+    "fail_requires_defect_note": true,
+    "fail_requires_photo": true,
+    "photo_scope": "per_defect"
+  },
+  "sections": [
+    {
+      "code": "setup",
+      "title": "Setup",
+      "questions": [
+        { "prompt": "Upper control resistance test configured per procedure (Figure 6 reference).", "required": true }
+      ]
+    },
+    {
+      "code": "execution",
+      "title": "Test Execution",
+      "questions": [
+        { "prompt": "Selected AC or DC resistance test performed for full duration.", "required": true },
+        { "prompt": "Test voltage documented.", "required": true },
+        { "prompt": "Final current documented.", "required": true }
+      ]
+    }
+  ],
+  "fields": [
+    {
+      "code": "test_method",
+      "label": "Test Method Used",
+      "type": "choice",
+      "required": true,
+      "options": [
+        "AC 40 kV for 3 minutes (max 400 µA)",
+        "DC 56 kV for 3 minutes (max 56 µA)"
+      ]
+    },
+    { "code": "test_voltage", "label": "Test Voltage", "type": "number", "required": true, "unit_hint": "kV" },
+    { "code": "duration", "label": "Duration", "type": "number", "required": true, "unit_hint": "minutes" },
+    { "code": "final_current", "label": "Final Current", "type": "number", "required": true, "unit_hint": "µA (or record units used)" },
+    { "code": "test_result", "label": "Overall Test Result", "type": "passfail", "required": true },
+    { "code": "notes", "label": "Notes", "type": "text", "required": false }
+  ]
+}
