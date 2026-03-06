@@ -124,6 +124,7 @@ echo "============================================================"
 [ -f "liners.json" ] && python3 manage.py import_new_template liners.json
 [ -f "ladders.json" ] && python3 manage.py import_new_template ladders.json
 [ -f "chassis.json" ] && python3 manage.py import_new_template chassis.json
+[ -f "load_test_structural.json" ] && python3 manage.py import_new_template load_test_structural.json
 echo -e "${GREEN}[OK]${NC} Templates imported"
 echo ""
 
