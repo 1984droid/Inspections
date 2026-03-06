@@ -196,6 +196,17 @@ echo ""
 cd "$APP_DIR"
 chmod +x deploy_production.sh
 
+# Generate unique SECRET_KEY and update .env
+print_info "Generating unique SECRET_KEY..."
+NEW_SECRET_KEY=$(python3 -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())")
+sed -i "s|SECRET_KEY=.*|SECRET_KEY=$NEW_SECRET_KEY|g" .env
+print_status "SECRET_KEY generated"
+
+# Update ALLOWED_HOSTS in .env
+SERVER_IP=$(hostname -I | awk '{print $1}')
+sed -i "s|ALLOWED_HOSTS=.*|ALLOWED_HOSTS=$DOMAIN_NAME,$SERVER_IP,localhost,127.0.0.1|g" .env
+print_status ".env configured"
+
 # Export variables for deploy script
 export DB_PASSWORD
 export ADMIN_USERNAME
