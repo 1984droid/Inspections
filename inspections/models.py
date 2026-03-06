@@ -39,7 +39,7 @@ class Equipment(models.Model):
     insulation_type = models.CharField(max_length=20, choices=INSULATION_CHOICES, blank=True, null=True)
 
     # Platform & Capacity
-    rated_platform_height = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True, help_text="Feet")
+    rated_platform_height = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
 
     CATEGORY_CHOICES = [
         ('a', 'Category A'),
@@ -50,26 +50,26 @@ class Equipment(models.Model):
     ]
     category = models.CharField(max_length=1, choices=CATEGORY_CHOICES, blank=True, null=True)
 
-    configured_for_electrical_work = models.BooleanField(default=False, help_text="Configured for electrical work rubber gloving")
+    configured_for_electrical_work = models.BooleanField(default=False)
     chassis_insulating_system = models.BooleanField(default=False)
 
     # Load Capacity
-    platform_count = models.PositiveIntegerField(default=1, help_text="Number of platforms/buckets")
-    capacity_per_platform = models.DecimalField(max_digits=7, decimal_places=2, blank=True, null=True, help_text="lbs per bucket/platform")
-    capacity_total = models.DecimalField(max_digits=7, decimal_places=2, blank=True, null=True, help_text="lbs total (both buckets/platforms)")
+    platform_count = models.PositiveIntegerField(default=1)
+    capacity_per_platform = models.DecimalField(max_digits=7, decimal_places=2, blank=True, null=True)
+    capacity_total = models.DecimalField(max_digits=7, decimal_places=2, blank=True, null=True)
 
     # Test & Qualification
     last_qualification_test_date = models.DateField(blank=True, null=True)
-    qualification_voltage = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True, help_text="kV")
+    qualification_voltage = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
 
     # Upper Controls & Attachments
-    upper_controls_high_resistance = models.BooleanField(default=False, help_text="Upper controls with high electrical resistance")
+    upper_controls_high_resistance = models.BooleanField(default=False)
     material_handling_attachment = models.BooleanField(default=False)
 
     # System Specs
-    system_pressure = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True, help_text="PSI")
-    control_system_voltage = models.DecimalField(max_digits=5, decimal_places=1, blank=True, null=True, help_text="Volts")
-    ambient_temp_range = models.CharField(max_length=50, blank=True, null=True, help_text="e.g., -20°F to 120°F")
+    system_pressure = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
+    control_system_voltage = models.DecimalField(max_digits=5, decimal_places=1, blank=True, null=True)
+    ambient_temp_range = models.CharField(max_length=50, blank=True, null=True)
 
     # Manufacturer Info
     manufacturer_name = models.CharField(max_length=200, blank=True, null=True)
