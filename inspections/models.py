@@ -243,6 +243,7 @@ class Template(models.Model):
     name = models.CharField(max_length=200)
     version = models.CharField(max_length=50)
     is_active = models.BooleanField(default=True)
+    definition = models.JSONField(null=True, blank=True, help_text="Full JSON template definition including fields, rules, etc.")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -260,6 +261,12 @@ class SectionTemplate(models.Model):
     section_id = models.CharField(max_length=100)
     title = models.CharField(max_length=200)
     ansi_reference = models.CharField(max_length=50, blank=True, null=True, help_text="ANSI section reference (e.g., 5.2)")
+    display_group = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True,
+        help_text="Display grouping for PDF reports (e.g., 'Setup', 'Test Execution'). Multiple sections can share the same display_group to appear under one heading."
+    )
 
     class Meta:
         ordering = ['template', 'order']
@@ -267,6 +274,10 @@ class SectionTemplate(models.Model):
 
     def __str__(self):
         return f"{self.template.code} - {self.title}"
+
+    def get_display_group(self):
+        """Returns display_group if set, otherwise falls back to title"""
+        return self.display_group or self.title
 
 
 class QuestionTemplate(models.Model):

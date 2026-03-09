@@ -2,7 +2,7 @@
   "template": {
     "code": "a92.2-2021-test-insulating-liner",
     "name": "ANSI A92.2 (2021) Test - Insulating Liner",
-    "version": "v1",
+    "version": "v2",
     "kind": "test"
   },
   "rules": {
@@ -12,44 +12,80 @@
   },
   "sections": [
     {
-      "code": "method_1_conductive_liquid",
-      "title": "Method 1 - Conductive Liquid (if used)",
+      "code": "liner_test_documentation",
+      "title": "Test Documentation (ANSI 5.6.3)",
+      "ansi_reference": "5.6.3",
+      "display_group": "Test Documentation",
       "questions": [
-        { "prompt": "Liner tested in conductive liquid with liquid level within 6 inches of top (inside and outside).", "required": false },
+        { "prompt": "Name of entity performing test documented.", "required": true },
+        { "prompt": "Make, model, and serial number of aerial device documented.", "required": true },
+        { "prompt": "Electrical Category documented.", "required": true },
+        { "prompt": "Rated Line Voltage documented.", "required": true },
+        { "prompt": "Test type designated: Qualification or Periodic Test.", "required": true },
+        { "prompt": "Test voltage type (AC or DC) documented.", "required": true },
+        { "prompt": "Date of test documented.", "required": true },
+        { "prompt": "Signature/name of person performing test documented.", "required": true }
+      ]
+    },
+    {
+      "code": "method_1_conductive_liquid",
+      "title": "Method 1 - Conductive Liquid Test (if used)",
+      "ansi_reference": "5.4.3.5",
+      "display_group": "Test Method 1 - Conductive Liquid",
+      "questions": [
+        { "prompt": "Platform liner tested in conductive liquid.", "required": false },
+        { "prompt": "Liquid level around both inner and outer surfaces within 6 inches (152 mm) of top of liner.", "required": false },
+        { "prompt": "Liner withstood minimum AC voltage of 35 kV for 1 minute OR DC voltage of 100 kV for 3 minutes.", "required": false },
         { "prompt": "Test completed without breakdown through liner material.", "required": false }
       ]
     },
     {
       "code": "method_2_alternate_electrodes",
-      "title": "Method 2 - Alternate Electrodes (if used)",
+      "title": "Method 2 - Alternate Electrode Test (if used)",
+      "ansi_reference": "5.4.3.5",
+      "display_group": "Test Method 2 - Alternate Electrodes",
       "questions": [
-        { "prompt": "Inside and outside surfaces (to within 6 inches of top) tested using conductive electrodes (wet sponge/towel/foil) adhering closely to surfaces.", "required": false },
-        { "prompt": "All sides and bottom tested, including corners (one surface at a time if procedure ensures full coverage).", "required": false },
-        { "prompt": "Test completed without puncture/breakdown of liner wall.", "required": false }
+        { "prompt": "Entire inside and outside surfaces (to within 6 inches/152 mm of top) tested using conductive electrodes (wet cellulose sponges, wet cloth towels, or metal foil).", "required": false },
+        { "prompt": "Electrodes adhered closely to inside and outside surfaces.", "required": false },
+        { "prompt": "Each side and bottom of liner tested (one surface at a time acceptable if procedure ensures all corners are tested).", "required": false },
+        { "prompt": "Liner withstood minimum AC voltage of 35 kV for 1 minute OR DC voltage of 100 kV for 3 minutes.", "required": false },
+        { "prompt": "Test completed without puncture of liner wall.", "required": false }
+      ]
+    },
+    {
+      "code": "liner_test_results",
+      "title": "Test Results",
+      "ansi_reference": "5.4.3.5",
+      "display_group": "Test Execution and Results",
+      "questions": [
+        { "prompt": "Applied test voltage (kV)", "required": true, "type": "measurement", "unit": "kV" },
+        { "prompt": "Test duration (minutes)", "required": true, "type": "measurement", "unit": "minutes" },
+        { "prompt": "Test voltage and duration documented per ANSI 5.6.3.", "required": true },
+        { "prompt": "Did liner pass test without breakdown/puncture per ANSI 5.4.3.5 criteria?", "required": true }
       ]
     }
   ],
   "fields": [
+    { "code": "entity_name", "label": "Name of Entity Performing Test", "type": "text", "required": true },
+    { "code": "electrical_category", "label": "Electrical Category", "type": "choice", "required": true, "options": ["Category A", "Category B", "Category C", "Category D", "Category E"] },
+    { "code": "rated_line_voltage", "label": "Rated Line Voltage", "type": "number", "required": true, "unit_hint": "kV" },
+    { "code": "test_designation", "label": "Test Designation", "type": "choice", "required": true, "options": ["Qualification Test", "Periodic Test"] },
     {
       "code": "test_method",
       "label": "Test Method Used",
       "type": "choice",
       "required": true,
       "options": [
-        "Conductive liquid immersion",
-        "Alternate electrodes (wet sponge/towel/foil)"
+        "Method 1 - Conductive liquid immersion",
+        "Method 2 - Alternate electrodes (wet sponge/towel/foil)"
       ]
     },
-    {
-      "code": "test_type",
-      "label": "Voltage Type",
-      "type": "choice",
-      "required": true,
-      "options": ["AC", "DC"]
-    },
-    { "code": "test_voltage", "label": "Test Voltage", "type": "number", "required": true, "unit_hint": "kV (AC min 35 for 1 min, DC min 100 for 3 min)" },
-    { "code": "duration", "label": "Duration", "type": "number", "required": true, "unit_hint": "minutes" },
-    { "code": "test_result", "label": "Overall Test Result", "type": "passfail", "required": true },
-    { "code": "notes", "label": "Notes", "type": "text", "required": false }
+    { "code": "test_type", "label": "Test Voltage Type", "type": "choice", "required": true, "options": ["AC", "DC"] },
+    { "code": "test_voltage", "label": "Applied Test Voltage", "type": "number", "required": true, "unit_hint": "kV (AC min 35kV for 1 min, DC min 100kV for 3 min)" },
+    { "code": "duration", "label": "Test Duration", "type": "number", "required": true, "unit_hint": "minutes (AC: 1 min, DC: 3 min)" },
+    { "code": "test_date", "label": "Date of Test", "type": "date", "required": true },
+    { "code": "performed_by", "label": "Person Performing Test (Name/Signature)", "type": "text", "required": true },
+    { "code": "test_result", "label": "Overall Liner Test Result", "type": "passfail", "required": true },
+    { "code": "notes", "label": "General Notes", "type": "text", "required": false }
   ]
 }

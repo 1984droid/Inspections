@@ -82,6 +82,29 @@ def new_inspection(request):
             for order, test_id in enumerate(test_module_ids):
                 try:
                     test_template = Template.objects.get(id=test_id, kind='test', is_active=True)
+
+                    # Validate dielectric test matches equipment category
+                    if 'dielectric' in test_template.code.lower():
+                        equipment_category = equipment.category.lower() if equipment.category else None
+
+                        # Check if Cat A/B test selected
+                        if 'cat-a-b' in test_template.code:
+                            if equipment_category not in ['a', 'b']:
+                                messages.warning(
+                                    request,
+                                    f'Skipped "{test_template.name}" - equipment is Category {equipment.get_category_display() if equipment.category else "Unknown"}, not A or B.'
+                                )
+                                continue
+
+                        # Check if Cat C/D/E test selected
+                        elif 'cat-c' in test_template.code or 'cde' in test_template.code:
+                            if equipment_category not in ['c', 'd', 'e']:
+                                messages.warning(
+                                    request,
+                                    f'Skipped "{test_template.name}" - equipment is Category {equipment.get_category_display() if equipment.category else "Unknown"}, not C/D/E.'
+                                )
+                                continue
+
                     InspectionTestModule.objects.create(
                         inspection=inspection,
                         template=test_template,
@@ -107,6 +130,14 @@ def new_inspection(request):
     # Pre-select equipment if passed in URL
     selected_equipment_id = request.GET.get('equipment_id')
 
+    # Get selected equipment category for filtering
+    selected_equipment = None
+    if selected_equipment_id:
+        try:
+            selected_equipment = Equipment.objects.get(id=selected_equipment_id)
+        except Equipment.DoesNotExist:
+            pass
+
     # Default to first periodic template if only one exists
     default_template = None
     if main_templates.count() == 1:
@@ -117,6 +148,7 @@ def new_inspection(request):
         'main_templates': main_templates,
         'test_templates': test_templates,
         'selected_equipment_id': selected_equipment_id,
+        'selected_equipment': selected_equipment,
         'default_template': default_template,
     }
     return render(request, 'inspections/new_inspection.html', context)

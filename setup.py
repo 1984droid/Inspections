@@ -232,7 +232,8 @@ def main():
             'uppercontrools.json',
             'liners.json',
             'ladders.json',
-            'chassis.json'
+            'chassis.json',
+            'load_test_structural.json'
         ]
 
         for template_file in templates:

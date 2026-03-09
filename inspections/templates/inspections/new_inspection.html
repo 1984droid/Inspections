@@ -45,16 +45,83 @@
 
         {% if test_templates %}
         <div style="margin-top: 20px; border: 1px solid #ddd; padding: 15px; border-radius: 5px; background: #f8f9fa;">
-            <label><strong>Optional: Add Dielectric Test Modules</strong></label>
-            <p style="color: #666; font-size: 14px; margin-bottom: 10px;">Select which dielectric test(s) to run with this inspection:</p>
+            <label><strong>Optional: Add Test Modules</strong></label>
+            <p style="color: #666; font-size: 14px; margin-bottom: 10px;">Select which test(s) to run with this inspection:</p>
+
+            {% if selected_equipment %}
+            <p style="color: #2980b9; font-size: 13px; margin-bottom: 12px; font-weight: 500;">
+                Equipment Category: <strong>{{ selected_equipment.get_category_display|default:"Not Set" }}</strong>
+                {% if not selected_equipment.category %}
+                <span style="color: #e67e22;">(⚠ Set equipment category to filter dielectric tests)</span>
+                {% endif %}
+            </p>
+            {% endif %}
 
             {% for test in test_templates %}
-            <div style="margin-bottom: 8px;">
-                <label style="font-weight: normal; cursor: pointer;">
-                    <input type="checkbox" name="test_modules" value="{{ test.id }}" style="margin-right: 8px;">
-                    {{ test.name }}
-                </label>
-            </div>
+            {% comment %} Check if this is a dielectric test and if it matches equipment category {% endcomment %}
+            {% if 'Dielectric' in test.name %}
+                {% if selected_equipment.category %}
+                    {% comment %} Cat A/B test - only show for Category A or B equipment {% endcomment %}
+                    {% if 'Category A/B' in test.name %}
+                        {% if selected_equipment.category == 'a' or selected_equipment.category == 'b' %}
+                        <div style="margin-bottom: 8px;">
+                            <label style="font-weight: normal; cursor: pointer;">
+                                <input type="checkbox" name="test_modules" value="{{ test.id }}" style="margin-right: 8px;">
+                                {{ test.name }} <span style="color: #27ae60;">✓ Matches Category {{ selected_equipment.get_category_display }}</span>
+                            </label>
+                        </div>
+                        {% else %}
+                        <div style="margin-bottom: 8px; opacity: 0.4;">
+                            <label style="font-weight: normal; text-decoration: line-through; color: #95a5a6;">
+                                <input type="checkbox" disabled style="margin-right: 8px;">
+                                {{ test.name }} <span style="color: #e74c3c; font-size: 12px;">(Category {{ selected_equipment.get_category_display }} equipment)</span>
+                            </label>
+                        </div>
+                        {% endif %}
+                    {% comment %} Cat C/D/E test - only show for Category C, D, or E equipment {% endcomment %}
+                    {% elif 'Category C/D/E' in test.name %}
+                        {% if selected_equipment.category == 'c' or selected_equipment.category == 'd' or selected_equipment.category == 'e' %}
+                        <div style="margin-bottom: 8px;">
+                            <label style="font-weight: normal; cursor: pointer;">
+                                <input type="checkbox" name="test_modules" value="{{ test.id }}" style="margin-right: 8px;">
+                                {{ test.name }} <span style="color: #27ae60;">✓ Matches Category {{ selected_equipment.get_category_display }}</span>
+                            </label>
+                        </div>
+                        {% else %}
+                        <div style="margin-bottom: 8px; opacity: 0.4;">
+                            <label style="font-weight: normal; text-decoration: line-through; color: #95a5a6;">
+                                <input type="checkbox" disabled style="margin-right: 8px;">
+                                {{ test.name }} <span style="color: #e74c3c; font-size: 12px;">(Category {{ selected_equipment.get_category_display }} equipment)</span>
+                            </label>
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        {% comment %} Other dielectric tests - show normally {% endcomment %}
+                        <div style="margin-bottom: 8px;">
+                            <label style="font-weight: normal; cursor: pointer;">
+                                <input type="checkbox" name="test_modules" value="{{ test.id }}" style="margin-right: 8px;">
+                                {{ test.name }}
+                            </label>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    {% comment %} No category set - show warning {% endcomment %}
+                    <div style="margin-bottom: 8px;">
+                        <label style="font-weight: normal; cursor: pointer; color: #7f8c8d;">
+                            <input type="checkbox" name="test_modules" value="{{ test.id }}" style="margin-right: 8px;">
+                            {{ test.name }} <span style="color: #e67e22; font-size: 12px;">(⚠ Set equipment category first)</span>
+                        </label>
+                    </div>
+                {% endif %}
+            {% else %}
+                {% comment %} Non-dielectric test - show normally {% endcomment %}
+                <div style="margin-bottom: 8px;">
+                    <label style="font-weight: normal; cursor: pointer;">
+                        <input type="checkbox" name="test_modules" value="{{ test.id }}" style="margin-right: 8px;">
+                        {{ test.name }}
+                    </label>
+                </div>
+            {% endif %}
             {% endfor %}
         </div>
         {% endif %}

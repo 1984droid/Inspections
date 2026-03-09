@@ -2,7 +2,7 @@
   "template": {
     "code": "a92.2-2021-test-aerial-ladders-vertical-towers",
     "name": "ANSI A92.2 (2021) Test - Aerial Ladders & Vertical Towers (Insulating Boom Sections)",
-    "version": "v1",
+    "version": "v2",
     "kind": "test"
   },
   "rules": {
@@ -12,45 +12,102 @@
   },
   "sections": [
     {
-      "code": "positioning",
-      "title": "Positioning and Configuration",
+      "code": "ladder_tower_test_documentation",
+      "title": "Test Documentation (ANSI 5.6.3)",
+      "ansi_reference": "5.6.3",
+      "display_group": "Test Documentation",
       "questions": [
-        {
-          "prompt": "Aerial ladder test conducted with upper section extended only enough for platform to drop into operating position (or to predetermined marked extension length).",
-          "required": true
-        },
-        {
-          "prompt": "Vertical tower tested with platform rails raised within the platform and unit in normally stored position (or as manufacturer recommends).",
-          "required": true
-        },
-        {
-          "prompt": "If unit is rated as insulating by manufacturer: dielectric test performed in accordance with Category C/D/E procedure (5.4.3.2).",
-          "required": true
-        }
+        { "prompt": "Name of entity performing test documented.", "required": true },
+        { "prompt": "Make, model, and serial number of aerial device documented.", "required": true },
+        { "prompt": "Electrical Category documented.", "required": true },
+        { "prompt": "Rated Line Voltage documented.", "required": true },
+        { "prompt": "Test type designated: Qualification or Periodic Test.", "required": true },
+        { "prompt": "Test voltage type (AC or DC) documented.", "required": true },
+        { "prompt": "Date of test documented.", "required": true },
+        { "prompt": "Signature/name of person performing test documented.", "required": true }
+      ]
+    },
+    {
+      "code": "ladder_positioning",
+      "title": "Aerial Ladder - Positioning and Configuration",
+      "ansi_reference": "5.4.3.3",
+      "display_group": "Test Setup and Positioning",
+      "questions": [
+        { "prompt": "Test for aerial ladder conducted with upper section extended only far enough to permit ladder platform to drop into operating position OR for predetermined extended length as indicated on ladder section.", "required": false }
+      ]
+    },
+    {
+      "code": "tower_positioning",
+      "title": "Vertical Tower - Positioning and Configuration",
+      "ansi_reference": "5.4.3.3",
+      "display_group": "Test Setup and Positioning",
+      "questions": [
+        { "prompt": "Vertical tower tested with tower platform rails raised within confines of platform and unit in normally stored position (or as recommended by manufacturer).", "required": false }
+      ]
+    },
+    {
+      "code": "insulating_rated_test",
+      "title": "Insulating-Rated Units - Test Procedure",
+      "ansi_reference": "5.4.3.3",
+      "display_group": "Test Execution",
+      "questions": [
+        { "prompt": "If aerial ladder or vertical tower is rated by manufacturer as insulating: tested in accordance with Section 5.4.3.2 (Category C/D/E procedures).", "required": true },
+        { "prompt": "Applied test voltage (kV)", "required": true, "type": "measurement", "unit": "kV" },
+        { "prompt": "Final leakage current value", "required": true, "type": "measurement", "unit": "mA or µA" }
+      ]
+    },
+    {
+      "code": "ladder_tower_results",
+      "title": "Test Results",
+      "ansi_reference": "5.4.3.3",
+      "display_group": "Test Execution and Results",
+      "questions": [
+        { "prompt": "Test voltage and final current value documented per ANSI 5.6.3.", "required": true },
+        { "prompt": "Did unit pass test per applicable criteria?", "required": true }
       ]
     }
   ],
   "fields": [
+    { "code": "entity_name", "label": "Name of Entity Performing Test", "type": "text", "required": true },
+    { "code": "electrical_category", "label": "Electrical Category", "type": "choice", "required": true, "options": ["Category A", "Category B", "Category C", "Category D", "Category E"] },
+    { "code": "rated_line_voltage", "label": "Rated Line Voltage", "type": "number", "required": true, "unit_hint": "kV" },
+    { "code": "test_designation", "label": "Test Designation", "type": "choice", "required": true, "options": ["Qualification Test", "Periodic Test"] },
     {
       "code": "unit_type",
       "label": "Unit Type",
       "type": "choice",
       "required": true,
-      "options": ["Aerial Ladder", "Vertical Tower"]
+      "options": [
+        "Aerial Ladder",
+        "Vertical Tower"
+      ]
     },
     {
       "code": "insulating_rated",
       "label": "Manufacturer rates unit as insulating",
       "type": "choice",
       "required": true,
-      "options": ["Yes", "No"]
+      "options": [
+        "Yes",
+        "No"
+      ]
     },
+    { "code": "test_type", "label": "Test Voltage Type", "type": "choice", "required": true, "options": ["AC", "DC", "N/A"] },
+    { "code": "test_voltage", "label": "Applied Test Voltage", "type": "number", "required": false, "unit_hint": "kV (if insulating-rated and tested per 5.4.3.2)" },
+    { "code": "final_current", "label": "Final Leakage Current Value", "type": "number", "required": false, "unit_hint": "mA or µA (if insulating-rated and tested per 5.4.3.2)" },
+    { "code": "test_date", "label": "Date of Test", "type": "date", "required": true },
+    { "code": "performed_by", "label": "Person Performing Test (Name/Signature)", "type": "text", "required": true },
     {
       "code": "test_result",
-      "label": "Overall Module Result",
+      "label": "Overall Test Result",
       "type": "passfail",
       "required": true
     },
-    { "code": "notes", "label": "Notes", "type": "text", "required": false }
+    {
+      "code": "notes",
+      "label": "General Notes",
+      "type": "text",
+      "required": false
+    }
   ]
 }

@@ -65,6 +65,7 @@ class Command(BaseCommand):
                 'name': name,
                 'version': version,
                 'is_active': True,
+                'definition': data,  # Store full JSON definition
             }
         )
 
@@ -81,12 +82,16 @@ class Command(BaseCommand):
         for section_idx, section_data in enumerate(sections_data):
             section_code = section_data.get('code', f'section_{section_idx}')
             section_title = section_data.get('title', section_code)
+            ansi_reference = section_data.get('ansi_reference', section_data.get('ansi_ref', None))
+            display_group = section_data.get('display_group', None)
 
             section = SectionTemplate.objects.create(
                 template=template,
                 order=section_idx,
                 section_id=section_code,
-                title=section_title
+                title=section_title,
+                ansi_reference=ansi_reference,
+                display_group=display_group
             )
 
             # Import questions
@@ -99,11 +104,13 @@ class Command(BaseCommand):
                     required = True
                     question_type = 'pass_fail'
                     measurement_unit = None
+                    ansi_reference = None
                 else:
                     prompt = question_data.get('prompt', question_data.get('text', ''))
                     required = question_data.get('required', True)
                     question_type = question_data.get('type', 'pass_fail')
                     measurement_unit = question_data.get('unit', None)
+                    ansi_reference = question_data.get('ansi_reference', question_data.get('ansi_ref', None))
 
                 if not prompt:
                     continue
@@ -115,7 +122,8 @@ class Command(BaseCommand):
                     prompt=prompt,
                     required=required,
                     question_type=question_type,
-                    measurement_unit=measurement_unit
+                    measurement_unit=measurement_unit,
+                    ansi_reference=ansi_reference
                 )
 
         question_count = sum(s.questions.count() for s in template.sections.all())

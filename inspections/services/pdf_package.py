@@ -904,8 +904,8 @@ def generate_package_pdf(inspection):
     # Get list of test module template IDs
     test_module_template_ids = set(inspection.test_modules.values_list('template_id', flat=True))
 
-    for answer in inspection.answers.select_related('question__section').order_by(
-        'question__section__order', 'question__order'
+    for answer in inspection.answers.select_related('question__section__template').order_by(
+        'question__section__template__id', 'question__section__order', 'question__order'
     ):
         section = answer.question.section
         section_title = section.title
@@ -913,29 +913,31 @@ def generate_package_pdf(inspection):
         # Check if this section belongs to a test module
         is_test_module = section.template_id in test_module_template_ids
 
-        # Extract phase and subsection from title (e.g., "Frequent Inspection - Visual Walkaround")
-        if ' - ' in section_title:
-            phase, subsection = section_title.split(' - ', 1)
-        else:
-            # Handle sections without dash (like test modules)
-            phase = section_title
-            subsection = None
-
         # Separate test module answers
         if is_test_module:
-            if phase not in test_module_answers:
-                test_module_answers[phase] = {
+            # Use template name as the grouping key for test modules
+            template_name = section.template.name
+            if template_name not in test_module_answers:
+                test_module_answers[template_name] = {
                     'ansi_ref': section.ansi_reference,
                     'sections': {}
                 }
-            if section_title not in test_module_answers[phase]['sections']:
-                test_module_answers[phase]['sections'][section_title] = {
+            if section_title not in test_module_answers[template_name]['sections']:
+                test_module_answers[template_name]['sections'][section_title] = {
                     'section': section,
                     'answers': []
                 }
-            test_module_answers[phase]['sections'][section_title]['answers'].append(answer)
+            test_module_answers[template_name]['sections'][section_title]['answers'].append(answer)
         else:
             # Regular periodic/frequent inspection answers
+            # Extract phase and subsection from title (e.g., "Frequent Inspection - Visual Walkaround")
+            if ' - ' in section_title:
+                phase, subsection = section_title.split(' - ', 1)
+            else:
+                # Handle sections without dash
+                phase = section_title
+                subsection = None
+
             # Create phase group if doesn't exist
             if phase not in answers_by_phase:
                 answers_by_phase[phase] = {
@@ -1096,30 +1098,72 @@ def generate_package_pdf(inspection):
         # Section summaries removed for compact layout (totals already in Executive Summary)
 
     # ===== TEST MODULE QUESTION RESULTS =====
-    # Render each test module's questions on its own page
+    # Render test modules with proper visual hierarchy
+    first_test_module = True
     for test_module_name, test_module_data in test_module_answers.items():
-        story.append(PageBreak())
+        # Only add page break before the first test module
+        if first_test_module:
+            story.append(PageBreak())
+            first_test_module = False
+        else:
+            # Add spacing between test modules instead of page break
+            story.append(Spacer(1, 0.5*inch))
 
-        # Test module header
+        # Test module header (main heading - large, bold)
         test_heading = test_module_name.upper()
         if test_module_data.get('ansi_ref'):
             test_heading = f"{test_module_name.upper()} (ANSI {test_module_data['ansi_ref']})"
         story.append(Paragraph(test_heading, heading_style))
-        story.append(Spacer(1, 0.25*inch))
+        story.append(Spacer(1, 0.15*inch))
 
-        # Render each section within the test module
+        # Create subsection heading style (smaller than main heading)
+        subsection_style = ParagraphStyle(
+            'TestSubsection',
+            parent=subheading_style,
+            fontSize=11,
+            fontName='Helvetica-Bold',
+            textColor=colors.HexColor('#333333'),
+            spaceAfter=6,
+            spaceBefore=10
+        )
+
+        # Group sections by display_group for better organization
+        grouped_sections = {}
         for section_title, section_data in test_module_data['sections'].items():
             section = section_data['section']
             answers = section_data['answers']
 
-            # Section title if it's different from the module name
-            if section_title != test_module_name:
-                section_heading = section_title
-                if section.ansi_reference:
-                    section_heading = f"{section_title} (ANSI {section.ansi_reference})"
-                story.append(Paragraph(section_heading, subheading_style))
+            # Skip sections where all answers are N/A (unused optional methods)
+            non_na_answers = [a for a in answers if a.status != 'n/a']
+            if not non_na_answers:
+                continue
 
-            render_answer_table(story, answers, section, subheading_style, normal_style, defect_mapping)
+            # Use display_group if available, otherwise fall back to section title
+            display_group = section.get_display_group()
+
+            if display_group not in grouped_sections:
+                grouped_sections[display_group] = []
+
+            grouped_sections[display_group].append({
+                'section_title': section_title,
+                'section': section,
+                'answers': answers
+            })
+
+        # Render grouped sections
+        for display_group, sections_list in grouped_sections.items():
+            # Only show display_group heading if it differs from test module name
+            if display_group != test_module_name:
+                group_heading = display_group
+                # If all sections in this group have the same ANSI ref, show it once
+                ansi_refs = set(s['section'].ansi_reference for s in sections_list if s['section'].ansi_reference)
+                if len(ansi_refs) == 1:
+                    group_heading = f"{display_group} (ANSI {ansi_refs.pop()})"
+                story.append(Paragraph(group_heading, subsection_style))
+
+            # Render all answers from all sections in this display group
+            for section_info in sections_list:
+                render_answer_table(story, section_info['answers'], section_info['section'], subheading_style, normal_style, defect_mapping)
 
     # ===== APPENDIX A: DEFECTS SECTION =====
     # Moved to end of document for better organization
@@ -1376,7 +1420,7 @@ def render_answer_table(story, answers, section, subheading_style, normal_style,
     )
 
     # Render all answers as simple rows (no table, no header)
-    for answer in answers:
+    for idx, answer in enumerate(answers):
         status = answer.status.upper()
         item_text = answer.question.prompt
 
@@ -1454,3 +1498,7 @@ def render_answer_table(story, answers, section, subheading_style, normal_style,
         else:
             # PASS items - ultra-compact paragraph format
             story.append(Paragraph(f"{status_text}  {item_text}", compact_style))
+
+        # Add subtle spacing every 3 rows for visual grouping (only for PASS items)
+        if not is_failed and (idx + 1) % 3 == 0 and idx < len(answers) - 1:
+            story.append(Spacer(1, 3))

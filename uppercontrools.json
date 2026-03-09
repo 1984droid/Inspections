@@ -2,7 +2,7 @@
   "template": {
     "code": "a92.2-2021-test-upper-controls-high-resistance",
     "name": "ANSI A92.2 (2021) Test - Upper Controls High Electrical Resistance Components",
-    "version": "v1",
+    "version": "v2",
     "kind": "test"
   },
   "rules": {
@@ -12,23 +12,51 @@
   },
   "sections": [
     {
-      "code": "setup",
-      "title": "Setup",
+      "code": "upper_controls_test_documentation",
+      "title": "Test Documentation (ANSI 5.6.3)",
+      "ansi_reference": "5.6.3",
+      "display_group": "Test Documentation",
       "questions": [
-        { "prompt": "Upper control resistance test configured per procedure (Figure 6 reference).", "required": true }
+        { "prompt": "Name of entity performing test documented.", "required": true },
+        { "prompt": "Make, model, and serial number of aerial device documented.", "required": true },
+        { "prompt": "Electrical Category documented.", "required": true },
+        { "prompt": "Rated Line Voltage documented.", "required": true },
+        { "prompt": "Test type designated: Qualification or Periodic Test.", "required": true },
+        { "prompt": "Test voltage type (AC or DC) documented.", "required": true },
+        { "prompt": "Date of test documented.", "required": true },
+        { "prompt": "Signature/name of person performing test documented.", "required": true }
       ]
     },
     {
-      "code": "execution",
-      "title": "Test Execution",
+      "code": "upper_controls_setup",
+      "title": "Setup",
+      "ansi_reference": "5.4.3.6",
+      "display_group": "Setup",
       "questions": [
-        { "prompt": "Selected AC or DC resistance test performed for full duration.", "required": true },
-        { "prompt": "Test voltage documented.", "required": true },
-        { "prompt": "Final current documented.", "required": true }
+        { "prompt": "Upper controls that incorporate components for their electrical resistance tested to ensure resistance.", "required": true },
+        { "prompt": "Test configured consistent with Figure 6.", "required": true }
+      ]
+    },
+    {
+      "code": "upper_controls_execution",
+      "title": "Test Execution and Results",
+      "ansi_reference": "5.4.3.6",
+      "display_group": "Test Execution and Results",
+      "questions": [
+        { "prompt": "One of the following tests performed: (a) 40kV AC for 3 minutes with maximum allowable current of 400 microamperes, (b) 56kV DC for 3 minutes with maximum allowable current of 56 microamperes.", "required": true },
+        { "prompt": "Applied test voltage (kV)", "required": true, "type": "measurement", "unit": "kV" },
+        { "prompt": "Test duration (minutes)", "required": true, "type": "measurement", "unit": "minutes" },
+        { "prompt": "Final current value (µA)", "required": true, "type": "measurement", "unit": "µA" },
+        { "prompt": "Test voltage and final current value documented per ANSI 5.6.3.", "required": true },
+        { "prompt": "Did upper control components pass resistance test per ANSI 5.4.3.6 criteria?", "required": true }
       ]
     }
   ],
   "fields": [
+    { "code": "entity_name", "label": "Name of Entity Performing Test", "type": "text", "required": true },
+    { "code": "electrical_category", "label": "Electrical Category", "type": "choice", "required": true, "options": ["Category A", "Category B", "Category C", "Category D", "Category E"] },
+    { "code": "rated_line_voltage", "label": "Rated Line Voltage", "type": "number", "required": true, "unit_hint": "kV" },
+    { "code": "test_designation", "label": "Test Designation", "type": "choice", "required": true, "options": ["Qualification Test", "Periodic Test"] },
     {
       "code": "test_method",
       "label": "Test Method Used",
@@ -39,10 +67,13 @@
         "DC 56 kV for 3 minutes (max 56 µA)"
       ]
     },
-    { "code": "test_voltage", "label": "Test Voltage", "type": "number", "required": true, "unit_hint": "kV" },
-    { "code": "duration", "label": "Duration", "type": "number", "required": true, "unit_hint": "minutes" },
-    { "code": "final_current", "label": "Final Current", "type": "number", "required": true, "unit_hint": "µA (or record units used)" },
-    { "code": "test_result", "label": "Overall Test Result", "type": "passfail", "required": true },
-    { "code": "notes", "label": "Notes", "type": "text", "required": false }
+    { "code": "test_type", "label": "Test Voltage Type", "type": "choice", "required": true, "options": ["AC", "DC"] },
+    { "code": "test_voltage", "label": "Applied Test Voltage", "type": "number", "required": true, "unit_hint": "kV" },
+    { "code": "duration", "label": "Test Duration", "type": "number", "required": true, "unit_hint": "minutes (3 min for both AC and DC)" },
+    { "code": "final_current", "label": "Final Current Value", "type": "number", "required": true, "unit_hint": "µA (microamperes)" },
+    { "code": "test_date", "label": "Date of Test", "type": "date", "required": true },
+    { "code": "performed_by", "label": "Person Performing Test (Name/Signature)", "type": "text", "required": true },
+    { "code": "test_result", "label": "Overall Upper Controls Resistance Test Result", "type": "passfail", "required": true },
+    { "code": "notes", "label": "General Notes", "type": "text", "required": false }
   ]
 }

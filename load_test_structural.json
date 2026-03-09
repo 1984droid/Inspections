@@ -2,7 +2,7 @@
   "template": {
     "code": "a92.2-2021-test-structural-load",
     "name": "ANSI A92.2 Major Structural Load Test",
-    "version": "v1",
+    "version": "v2",
     "kind": "test"
   },
   "rules": {
@@ -12,82 +12,110 @@
   },
   "sections": [
     {
+      "code": "load_test_documentation",
+      "title": "Test Documentation (ANSI 5.6.3)",
+      "ansi_reference": "5.6.3",
+      "display_group": "Test Documentation",
+      "questions": [
+        { "prompt": "Name of entity performing test documented.", "required": true },
+        { "prompt": "Make, model, and serial number of aerial device documented.", "required": true },
+        { "prompt": "Electrical Category documented.", "required": true },
+        { "prompt": "Rated Line Voltage documented.", "required": true },
+        { "prompt": "Test type designated: Qualification or Periodic Test.", "required": true },
+        { "prompt": "Date of test documented.", "required": true },
+        { "prompt": "Signature/name of person performing test documented.", "required": true }
+      ]
+    },
+    {
       "code": "pretest_inspection",
       "title": "Pre-Test Inspection",
+      "ansi_reference": "8.2.5",
+      "display_group": "Pre-Test Inspection",
       "questions": [
-        { "prompt": "Are there any visible structural deformations?", "required": true },
-        { "prompt": "Are there any broken or cracked structural members?", "required": true },
-        { "prompt": "Are there any cracked welds on structural components?", "required": true },
-        { "prompt": "Are all critical fasteners properly secured and torqued?", "required": true },
-        { "prompt": "Is the equipment in suitable condition to proceed with load testing?", "required": true }
+        { "prompt": "Equipment service age verified (15 years for first test, then every 10 years thereafter).", "required": true },
+        { "prompt": "Structure inspected for unusual deformations.", "required": true },
+        { "prompt": "Structure inspected for broken members.", "required": true },
+        { "prompt": "Structure inspected for cracked welds.", "required": true },
+        { "prompt": "All critical fasteners properly secured and torqued.", "required": true },
+        { "prompt": "Equipment in suitable condition to proceed with load testing.", "required": true }
+      ]
+    },
+    {
+      "code": "test_setup",
+      "title": "Test Setup",
+      "ansi_reference": "4.5.1",
+      "display_group": "Test Setup",
+      "questions": [
+        { "prompt": "Vehicle meets manufacturer's minimum vehicle specifications.", "required": true },
+        { "prompt": "Readily removable tools and material removed from platform.", "required": true },
+        { "prompt": "If outriggers/stabilizers required: deployed per manufacturer's instructions.", "required": true },
+        { "prompt": "Oscillating axle locks engaged (if equipped and required).", "required": true },
+        { "prompt": "Parking brake set (if required).", "required": true }
       ]
     },
     {
       "code": "level_surface_test",
       "title": "Level Surface Stability Test (1.5x Rated Capacity)",
+      "ansi_reference": "4.5.1",
+      "display_group": "Level Surface Test (ANSI 4.5.1 & 8.2.5)",
       "questions": [
-        { "prompt": "Is the test being conducted on a firm, level surface?", "required": true },
-        { "prompt": "Rated platform capacity", "required": true, "type": "measurement", "unit": "lbs" },
-        { "prompt": "Test load applied (1.5x rated capacity)", "required": true, "type": "measurement", "unit": "lbs" },
-        { "prompt": "Platform elevated to maximum working height with test load - Does unit remain stable?", "required": true },
-        { "prompt": "Platform extended to maximum horizontal reach with test load - Does unit remain stable?", "required": true },
-        { "prompt": "Is there any evidence of structural instability during level surface test?", "required": true },
-        { "prompt": "Are there any new structural deformations after level surface test?", "required": true }
+        { "prompt": "Test conducted on firm, level surface.", "required": true },
+        { "prompt": "Test load is 1.5x rated load capacity (platform capacity + supplemental capacity if applicable).", "required": true },
+        { "prompt": "Load applied at center of platform.", "required": true },
+        { "prompt": "Platform tested in every position within specific configuration.", "required": true },
+        { "prompt": "Over center units: tested in over center position.", "required": true },
+        { "prompt": "Unit remains stable with no instability observed.", "required": true },
+        { "prompt": "No permanent deformation of any component observed.", "required": true }
       ]
     },
     {
       "code": "slope_test",
       "title": "Slope Stability Test (1.33x Rated Capacity at 5° Slope)",
+      "ansi_reference": "4.5.2",
+      "display_group": "Slope Test (ANSI 4.5.2)",
       "questions": [
-        { "prompt": "Is the test being conducted on a firm, 5-degree slope surface?", "required": true },
-        { "prompt": "Slope angle verified", "required": true, "type": "measurement", "unit": "degrees" },
-        { "prompt": "Test load applied (1.33x rated capacity)", "required": true, "type": "measurement", "unit": "lbs" },
-        { "prompt": "Platform elevated to maximum working height with test load on slope - Does unit remain stable?", "required": true },
-        { "prompt": "Platform extended to maximum horizontal reach with test load on slope - Does unit remain stable?", "required": true },
-        { "prompt": "Unit rotated/positioned in most critical orientation on slope - Does unit remain stable?", "required": true },
-        { "prompt": "Is there any evidence of structural instability during slope test?", "required": true },
-        { "prompt": "Are there any new structural deformations after slope test?", "required": true }
+        { "prompt": "Test conducted on 5-degree slope (or manufacturer's maximum allowable slope if greater).", "required": true },
+        { "prompt": "Slope in direction of least stability.", "required": true },
+        { "prompt": "Test load is 1.33x rated load capacity (platform capacity + supplemental capacity if applicable).", "required": true },
+        { "prompt": "Load applied at center of platform.", "required": true },
+        { "prompt": "Platform tested in every position within specific configuration on slope.", "required": true },
+        { "prompt": "Unit remains stable with no instability observed.", "required": true },
+        { "prompt": "No permanent deformation of any component observed.", "required": true }
       ]
     },
     {
       "code": "posttest_inspection",
       "title": "Post-Test Inspection",
+      "ansi_reference": "4.5.3",
+      "display_group": "Post-Test Inspection (ANSI 4.5.3 & 8.2.5)",
       "questions": [
-        { "prompt": "After load removal, are there any permanent deformations?", "required": true },
-        { "prompt": "Are there any new cracks in structural members or welds?", "required": true },
-        { "prompt": "Are there any broken or damaged components?", "required": true },
-        { "prompt": "Do all hydraulic/pneumatic systems operate normally after test?", "required": true },
-        { "prompt": "Do all electrical/control systems operate normally after test?", "required": true },
-        { "prompt": "Does the equipment meet all structural load test requirements?", "required": true }
-      ]
-    },
-    {
-      "code": "test_documentation",
-      "title": "Test Documentation",
-      "questions": [
-        { "prompt": "Date of last major structural load test documented.", "required": true },
-        { "prompt": "Equipment service age at time of this test (years) documented.", "required": true },
-        { "prompt": "Next major structural load test due date calculated and documented.", "required": true },
-        { "prompt": "Test performed by (name and certification) documented.", "required": true },
-        { "prompt": "Were photos taken of all critical load points during testing?", "required": true }
+        { "prompt": "After load removal: no permanent deformations present.", "required": true },
+        { "prompt": "After load removal: no new cracks in structural members or welds.", "required": true },
+        { "prompt": "After load removal: no broken or damaged components.", "required": true },
+        { "prompt": "Hydraulic/pneumatic systems operate normally after test.", "required": true },
+        { "prompt": "Electrical/control systems operate normally after test.", "required": true },
+        { "prompt": "Structure inspected for unusual deformations (per ANSI 8.2.5.2).", "required": true },
+        { "prompt": "All damaged items replaced or repaired before return to service.", "required": true },
+        { "prompt": "Does equipment meet all structural load test requirements?", "required": true }
       ]
     }
   ],
   "fields": [
+    { "code": "entity_name", "label": "Name of Entity Performing Test", "type": "text", "required": true },
+    { "code": "electrical_category", "label": "Electrical Category", "type": "choice", "required": true, "options": ["Category A", "Category B", "Category C", "Category D", "Category E", "Non-Insulating"] },
+    { "code": "rated_line_voltage", "label": "Rated Line Voltage", "type": "number", "required": false, "unit_hint": "kV (if applicable)" },
+    { "code": "test_designation", "label": "Test Designation", "type": "choice", "required": true, "options": ["Qualification Test", "Major Structural Inspection (8.2.5)"] },
     { "code": "rated_capacity", "label": "Rated Platform Capacity", "type": "number", "required": true, "unit_hint": "lbs" },
+    { "code": "supplemental_capacity", "label": "Supplemental Capacity (Lifting Attachment)", "type": "number", "required": false, "unit_hint": "lbs (if applicable)" },
     { "code": "level_test_load", "label": "Level Surface Test Load (1.5x)", "type": "number", "required": true, "unit_hint": "lbs" },
     { "code": "slope_test_load", "label": "Slope Test Load (1.33x)", "type": "number", "required": true, "unit_hint": "lbs" },
-    { "code": "slope_angle", "label": "Slope Angle Verified", "type": "number", "required": true, "unit_hint": "degrees" },
-    { "code": "service_age", "label": "Equipment Service Age", "type": "number", "required": true, "unit_hint": "years" },
-    { "code": "last_test_date", "label": "Date of Last Major Structural Load Test", "type": "date", "required": false },
+    { "code": "slope_angle", "label": "Slope Angle Verified", "type": "number", "required": true, "unit_hint": "degrees (min 5° or manufacturer max)" },
+    { "code": "service_age", "label": "Equipment Service Age", "type": "number", "required": true, "unit_hint": "years (15 yr first test, then every 10 yr)" },
+    { "code": "last_test_date", "label": "Date of Last Major Structural Test", "type": "date", "required": false },
+    { "code": "test_date", "label": "Date of Test", "type": "date", "required": true },
     { "code": "next_test_date", "label": "Next Test Due Date", "type": "date", "required": true },
-    { "code": "test_technician", "label": "Test Performed By (Name & Certification)", "type": "text", "required": true },
-    {
-      "code": "test_result",
-      "label": "Overall Structural Load Test Result",
-      "type": "passfail",
-      "required": true
-    },
+    { "code": "performed_by", "label": "Person Performing Test (Name/Signature)", "type": "text", "required": true },
+    { "code": "test_result", "label": "Overall Structural Load Test Result", "type": "passfail", "required": true },
     { "code": "notes", "label": "General Notes", "type": "text", "required": false }
   ]
 }

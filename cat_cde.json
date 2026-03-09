@@ -2,7 +2,7 @@
   "template": {
     "code": "a92.2-2021-test-dielectric-cat-cde",
     "name": "ANSI A92.2 (2021) Dielectric Test - Category C/D/E",
-    "version": "v1",
+    "version": "v2",
     "kind": "test"
   },
   "rules": {
@@ -12,39 +12,69 @@
   },
   "sections": [
     {
+      "code": "cde_test_documentation",
+      "title": "Test Documentation (ANSI 5.6.3)",
+      "ansi_reference": "5.6.3",
+      "display_group": "Test Documentation",
+      "questions": [
+        { "prompt": "Name of entity performing test documented.", "required": true },
+        { "prompt": "Make, model, and serial number of aerial device documented.", "required": true },
+        { "prompt": "Electrical Category (C, D, or E) documented.", "required": true },
+        { "prompt": "Rated Line Voltage documented.", "required": true },
+        { "prompt": "Test type designated: Qualification or Periodic Test.", "required": true },
+        { "prompt": "Test voltage type (AC or DC) documented.", "required": true },
+        { "prompt": "Date of test documented.", "required": true },
+        { "prompt": "Signature/name of person performing test documented.", "required": true }
+      ]
+    },
+    {
       "code": "cde_bonding_and_oil",
       "title": "Setup - Bonding and Hydraulic Lines",
+      "ansi_reference": "5.4.3.2",
+      "display_group": "Setup",
       "questions": [
-        { "prompt": "Platform-end conductive material bonded per procedure.", "required": true },
-        { "prompt": "Hydraulic lines crossing insulating boom section/system filled with oil by operating unit prior to test.", "required": true }
+        { "prompt": "All conductive material at platform end of insulating boom section/system electrically bonded during test (per Figure 5).", "required": true },
+        { "prompt": "All hydraulic lines crossing insulating boom section/system filled with oil by operating unit prior to test.", "required": true }
       ]
     },
     {
       "code": "cde_shunting",
       "title": "Setup - Shunting",
+      "ansi_reference": "5.4.3.2",
+      "display_group": "Setup",
       "questions": [
-        { "prompt": "If continuity across joints cannot be ensured: shunting installed per procedure.", "required": true },
-        { "prompt": "If chassis insulating system provided: chassis insulating system shunted per procedure.", "required": true }
+        { "prompt": "If continuity across joints cannot be ensured: shunting required and installed.", "required": true },
+        { "prompt": "If chassis insulating system provided: shunted as shown in Figure 3A.", "required": true }
       ]
     },
     {
       "code": "cde_test_method_and_config",
       "title": "Test Configuration and Method",
+      "ansi_reference": "5.4.3.2",
+      "display_group": "Test Execution",
       "questions": [
-        { "prompt": "Test method selected and performed (AC/DC Table 2 insulated-from-ground / alternate DC grounded method / energized AC line contact Table 3).", "required": true }
+        { "prompt": "One of the following tests performed: (a) AC or DC test per Table 2 with MEWP insulated from ground (Fig 2 or 4 with shielded cable to current meter then ground), (b) Alternate DC test per Table 2 with MEWP grounded (Fig 2A with current meter between voltage source and unit), (c) Energized AC line contact test per Table 3.", "required": true },
+        { "prompt": "Booms positioned per test configuration (Figure 2, 2A, or 4 as applicable).", "required": true }
       ]
     },
     {
       "code": "cde_results",
-      "title": "Recorded Results",
+      "title": "Test Results",
+      "ansi_reference": "5.4.3.2",
+      "display_group": "Test Execution and Results",
       "questions": [
-        { "prompt": "Test voltage", "required": true, "type": "measurement", "unit": "kV" },
-        { "prompt": "Final leakage current", "required": true, "type": "measurement", "unit": "mA" },
-        { "prompt": "Did equipment pass dielectric test?", "required": true }
+        { "prompt": "Applied test voltage (kV)", "required": true, "type": "measurement", "unit": "kV" },
+        { "prompt": "Final leakage current value", "required": true, "type": "measurement", "unit": "mA or µA" },
+        { "prompt": "Test voltage and final current value documented per ANSI 5.6.3.", "required": true },
+        { "prompt": "Did equipment pass dielectric test per applicable Table 2 or Table 3 criteria?", "required": true }
       ]
     }
   ],
   "fields": [
+    { "code": "entity_name", "label": "Name of Entity Performing Test", "type": "text", "required": true },
+    { "code": "electrical_category", "label": "Electrical Category", "type": "choice", "required": true, "options": ["Category C", "Category D", "Category E"] },
+    { "code": "rated_line_voltage", "label": "Rated Line Voltage", "type": "number", "required": true, "unit_hint": "kV" },
+    { "code": "test_designation", "label": "Test Designation", "type": "choice", "required": true, "options": ["Qualification Test", "Periodic Test"] },
     {
       "code": "test_method",
       "label": "Test Method Used",
@@ -56,8 +86,11 @@
         "Energized AC line contact test (Table 3)"
       ]
     },
-    { "code": "test_voltage", "label": "Test Voltage", "type": "number", "required": true, "unit_hint": "kV" },
-    { "code": "final_current", "label": "Final Leakage Current", "type": "number", "required": true, "unit_hint": "mA" },
+    { "code": "test_type", "label": "Test Voltage Type", "type": "choice", "required": true, "options": ["AC", "DC"] },
+    { "code": "test_voltage", "label": "Applied Test Voltage", "type": "number", "required": true, "unit_hint": "kV" },
+    { "code": "final_current", "label": "Final Leakage Current Value", "type": "number", "required": true, "unit_hint": "mA or µA" },
+    { "code": "test_date", "label": "Date of Test", "type": "date", "required": true },
+    { "code": "performed_by", "label": "Person Performing Test (Name/Signature)", "type": "text", "required": true },
     {
       "code": "test_result",
       "label": "Overall Dielectric Test Result",
