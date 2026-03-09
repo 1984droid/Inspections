@@ -48,14 +48,18 @@
             <label><strong>Optional: Add Test Modules</strong></label>
             <p style="color: #666; font-size: 14px; margin-bottom: 10px;">Select which test(s) to run with this inspection:</p>
 
-            {% if selected_equipment %}
             <p style="color: #2980b9; font-size: 13px; margin-bottom: 12px; font-weight: 500;">
-                Equipment Category: <strong>{{ selected_equipment.get_category_display|default:"Not Set" }}</strong>
-                {% if not selected_equipment.category %}
-                <span style="color: #e67e22;">(⚠ Set equipment category to filter dielectric tests)</span>
+                Equipment Category: <span id="equipment-category-text">
+                {% if selected_equipment %}
+                    <strong>{{ selected_equipment.get_category_display|default:"Not Set" }}</strong>
+                    {% if not selected_equipment.category %}
+                    <span style="color: #e67e22;">(⚠ Set equipment category to filter dielectric tests)</span>
+                    {% endif %}
+                {% else %}
+                    <strong>Select equipment first</strong>
                 {% endif %}
+                </span>
             </p>
-            {% endif %}
 
             {% for test in test_templates %}
             {% comment %} Check if this is a dielectric test and if it matches equipment category {% endcomment %}
@@ -129,4 +133,90 @@
         <button type="submit" class="btn" style="margin-top: 20px;">Start Inspection</button>
     </form>
 </div>
+
+<script>
+// Equipment category data
+const equipmentCategories = {
+    {% for equipment in equipment_list %}
+    {{ equipment.id }}: '{{ equipment.category|default:"" }}',
+    {% endfor %}
+};
+
+// Update test module visibility based on selected equipment
+function updateTestModuleVisibility() {
+    const equipmentSelect = document.querySelector('select[name="equipment_id"]');
+    const selectedEquipmentId = equipmentSelect.value;
+    const category = equipmentCategories[selectedEquipmentId] || '';
+
+    // Get all test module checkboxes
+    const testModules = document.querySelectorAll('input[name="test_modules"]');
+
+    testModules.forEach(function(checkbox) {
+        const label = checkbox.closest('div');
+        const testName = label.textContent;
+
+        // Check if this is a dielectric test
+        if (testName.includes('Dielectric')) {
+            if (testName.includes('Category A/B')) {
+                // Category A/B test - show only for Category A or B
+                if (category === 'a' || category === 'b') {
+                    label.style.display = 'block';
+                    label.style.opacity = '1';
+                    checkbox.disabled = false;
+                } else if (category) {
+                    label.style.display = 'none';
+                } else {
+                    // No category selected - show with warning
+                    label.style.display = 'block';
+                    label.style.opacity = '0.6';
+                    checkbox.disabled = false;
+                }
+            } else if (testName.includes('Category C/D/E')) {
+                // Category C/D/E test - show only for Category C, D, or E
+                if (category === 'c' || category === 'd' || category === 'e') {
+                    label.style.display = 'block';
+                    label.style.opacity = '1';
+                    checkbox.disabled = false;
+                } else if (category) {
+                    label.style.display = 'none';
+                } else {
+                    // No category selected - show with warning
+                    label.style.display = 'block';
+                    label.style.opacity = '0.6';
+                    checkbox.disabled = false;
+                }
+            }
+        }
+    });
+
+    // Update category display text
+    const categoryText = document.getElementById('equipment-category-text');
+    if (categoryText) {
+        if (category) {
+            const categoryNames = {
+                'a': 'Category A',
+                'b': 'Category B',
+                'c': 'Category C',
+                'd': 'Category D',
+                'e': 'Category E'
+            };
+            categoryText.innerHTML = '<strong>' + (categoryNames[category] || 'Not Set') + '</strong>';
+        } else {
+            categoryText.innerHTML = '<strong>Not Set</strong> <span style="color: #e67e22;">(⚠ Set equipment category to filter dielectric tests)</span>';
+        }
+    }
+}
+
+// Attach event listener to equipment select
+document.addEventListener('DOMContentLoaded', function() {
+    const equipmentSelect = document.querySelector('select[name="equipment_id"]');
+    if (equipmentSelect) {
+        equipmentSelect.addEventListener('change', updateTestModuleVisibility);
+        // Run on page load if equipment is pre-selected
+        if (equipmentSelect.value) {
+            updateTestModuleVisibility();
+        }
+    }
+});
+</script>
 {% endblock %}
