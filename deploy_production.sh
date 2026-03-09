@@ -6,9 +6,9 @@
 # with PostgreSQL 18, Python 3.14, Nginx, and SSL
 #
 # Usage:
-#   ./deploy_production.sh                    # Interactive setup
-#   ./deploy_production.sh --auto             # Automated (use defaults)
-#   ./deploy_production.sh --update           # Update existing deployment
+#   bash deploy_production.sh                 # Interactive setup (no chmod needed)
+#   bash deploy_production.sh --auto          # Automated (use defaults)
+#   bash deploy_production.sh --update        # Update existing deployment
 #
 
 set -e  # Exit on error
