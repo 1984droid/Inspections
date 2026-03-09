@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
-from inspections.models import CompanyInfo, InspectorProfile, Customer
+from inspections.models import CompanyInfo, InspectorProfile, Customer, Equipment
 
 
 class Command(BaseCommand):
@@ -45,6 +45,10 @@ class Command(BaseCommand):
             # Seed customers
             if 'customers' in data:
                 self.seed_customers(data['customers'])
+
+            # Seed equipment
+            if 'equipment' in data:
+                self.seed_equipment(data['equipment'])
 
             self.stdout.write(self.style.SUCCESS('Successfully seeded initial data!'))
 
@@ -153,6 +157,45 @@ class Command(BaseCommand):
             )
             action = 'Created' if created else 'Updated'
             self.stdout.write(self.style.SUCCESS(f'{action} customer: {customer.name}'))
+
+    def seed_equipment(self, equipment_data):
+        """Seed or update equipment"""
+        for equip_data in equipment_data:
+            # Find customer by name
+            customer_name = equip_data.get('customer_name')
+            if not customer_name:
+                self.stdout.write(self.style.WARNING(f'Skipping equipment without customer_name'))
+                continue
+
+            try:
+                customer = Customer.objects.get(name=customer_name)
+            except Customer.DoesNotExist:
+                self.stdout.write(self.style.WARNING(f'Customer not found: {customer_name}'))
+                continue
+
+            # Create or update equipment by serial number
+            equipment, created = Equipment.objects.update_or_create(
+                serial_number=equip_data['serial_number'],
+                defaults={
+                    'customer': customer,
+                    'make': equip_data.get('make', ''),
+                    'model': equip_data.get('model', ''),
+                    'unit_number': equip_data.get('unit_number', ''),
+                    'max_working_height': equip_data.get('max_working_height'),
+                    'year_of_manufacture': equip_data.get('year_of_manufacture'),
+                    'vehicle_make': equip_data.get('vehicle_make', ''),
+                    'vehicle_model': equip_data.get('vehicle_model', ''),
+                    'vehicle_unit_number': equip_data.get('vehicle_unit_number', ''),
+                    'vehicle_vin': equip_data.get('vehicle_vin', ''),
+                    'vehicle_year': equip_data.get('vehicle_year'),
+                    'vehicle_license_plate': equip_data.get('vehicle_license_plate', ''),
+                    'insulation_type': equip_data.get('insulation_type', ''),
+                    'category': equip_data.get('category', ''),
+                    'upper_controls_high_resistance': equip_data.get('upper_controls_high_resistance', False),
+                }
+            )
+            action = 'Created' if created else 'Updated'
+            self.stdout.write(self.style.SUCCESS(f'{action} equipment: {equipment.serial_number}'))
 
     def create_template_file(self, file_path):
         """Create a template seed_data.json file"""

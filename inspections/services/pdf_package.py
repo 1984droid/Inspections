@@ -1,4 +1,5 @@
 from io import BytesIO
+import os
 from django.core.files.base import ContentFile
 from django.conf import settings
 from reportlab.lib.pagesizes import letter
@@ -32,7 +33,8 @@ def generate_package_pdf(inspection):
     """
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter,
-                            topMargin=0.5*inch, bottomMargin=0.5*inch)
+                            topMargin=0.5*inch, bottomMargin=0.45*inch,
+                            leftMargin=0.55*inch, rightMargin=0.55*inch)
 
     story = []
     styles = getSampleStyleSheet()
@@ -72,245 +74,439 @@ def generate_package_pdf(inspection):
     normal_style = styles['Normal']
 
     # ===== COVER PAGE =====
-    # Company Logo
-    logo_path = settings.BASE_DIR / 'inspections' / 'static' / 'inspections' / 'images' / 'logo_color.png'
-    if logo_path.exists():
-        logo = Image(str(logo_path), width=1.8*inch, height=1.8*inch, kind='proportional')
-        story.append(logo)
-        story.append(Spacer(1, 0.15*inch))
-    else:
-        story.append(Spacer(1, 0.3*inch))
+    # Helper function to create divider lines
+    def create_divider():
+        """Create a thin horizontal divider line"""
+        divider = Table([['']], colWidths=[7.4*inch])
+        divider.setStyle(TableStyle([
+            ('LINEBELOW', (0, 0), (-1, -1), 0.5, colors.black),
+            ('TOPPADDING', (0, 0), (-1, -1), 0),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+        ]))
+        return divider
 
-    # Title - smaller, less prominent
-    story.append(Paragraph("ANSI A92.2 Periodic Inspection Report", title_style))
-    story.append(Spacer(1, 0.4*inch))
+    # Helper function to create info cards
+    def create_info_card(title, fields_dict, width, height):
+        """
+        Creates a styled information card with title and field rows.
+        title: string like "CUSTOMER INFORMATION"
+        fields_dict: dict like {'Customer': 'MJ Electric', 'Location': 'North Yard'}
+        width: card width in inches
+        height: card height in inches
+        Returns: Table object
+        """
+        card_data = []
 
-    # DOMINANT RESULT BANNER - much larger and more prominent
-    result = inspection.overall_result.upper() if inspection.overall_result else 'IN PROGRESS'
-    result_color = colors.HexColor('#27ae60') if result == 'PASS' else colors.HexColor('#e74c3c') if result == 'FAIL' else colors.HexColor('#f39c12')
-    result_style = ParagraphStyle(
-        'ResultBanner',
-        parent=styles['Heading1'],
-        fontSize=48,
-        fontName='Helvetica-Bold',
-        textColor=colors.whitesmoke,
-        spaceAfter=8,
-        spaceBefore=8,
-        alignment=TA_CENTER,
-        backColor=result_color,
-        borderPadding=20,
-        leading=60
-    )
-    story.append(Paragraph(f"<b>{result}</b>", result_style))
-    story.append(Spacer(1, 0.4*inch))
+        # Title row - will span both columns
+        title_style = ParagraphStyle(
+            'CardTitle',
+            parent=styles['Normal'],
+            fontSize=9,
+            fontName='Helvetica-Bold',
+            textColor=colors.black,
+            alignment=TA_LEFT,
+            wordWrap='LTR',
+            splitLongWords=0
+        )
+        # Title as a single-column row (will be handled by SPAN in table style)
+        card_data.append([Paragraph(title, title_style), ''])
+
+        # Field rows - filter out None/empty values
+        label_style = ParagraphStyle(
+            'CardLabel',
+            parent=styles['Normal'],
+            fontSize=8,
+            fontName='Helvetica-Bold',
+            textColor=colors.HexColor('#333333')
+        )
+        value_style = ParagraphStyle(
+            'CardValue',
+            parent=styles['Normal'],
+            fontSize=9,
+            textColor=colors.HexColor('#1a1a1a')
+        )
+
+        for label, value in fields_dict.items():
+            if value and str(value).strip():
+                card_data.append([
+                    Paragraph(f"{label}:", label_style),
+                    Paragraph(str(value), value_style)
+                ])
+
+        # If no fields provided, show placeholder
+        if len(card_data) == 1:
+            placeholder_style = ParagraphStyle(
+                'Placeholder',
+                parent=styles['Normal'],
+                fontSize=9,
+                textColor=colors.HexColor('#999999'),
+                fontName='Helvetica-Oblique'
+            )
+            card_data.append([Paragraph(fields_dict.get('_placeholder', 'No information provided'), placeholder_style)])
+
+        # Create table
+        # Calculate column widths for two-column layout (label: value)
+        if any(len(row) == 2 for row in card_data):
+            col_widths = [width * 0.40, width * 0.60]
+        else:
+            col_widths = [width]
+
+        card_table = Table(card_data, colWidths=col_widths)
+        card_styles = [
+            ('SPAN', (0, 0), (1, 0)),  # Span title across both columns
+            ('ALIGN', (0, 0), (-1, 0), 'LEFT'),
+            ('ALIGN', (0, 1), (0, -1), 'LEFT'),
+            ('ALIGN', (1, 1), (1, -1), 'LEFT'),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('TOPPADDING', (0, 0), (-1, 0), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+            ('TOPPADDING', (0, 1), (-1, -1), 3),
+            ('BOTTOMPADDING', (0, 1), (-1, -1), 3),
+            ('LEFTPADDING', (0, 0), (-1, -1), 8),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+            ('BOX', (0, 0), (-1, -1), 1, colors.black),
+            ('LINEBELOW', (0, 0), (-1, 0), 1, colors.black),
+        ]
+        card_table.setStyle(TableStyle(card_styles))
+
+        return card_table
 
     eq = inspection.equipment
     customer = eq.customer
 
-    # Section heading style for cover page
-    cover_section_style = ParagraphStyle(
-        'CoverSection',
-        parent=styles['Heading2'],
-        fontSize=12,
+    # Zone 1: Header with logo (height: 0.55in)
+    header_style = ParagraphStyle(
+        'CoverHeader',
+        parent=styles['Heading1'],
+        fontSize=20,
         fontName='Helvetica-Bold',
-        textColor=colors.whitesmoke,
+        textColor=colors.black,
+        alignment=TA_LEFT,
         spaceAfter=0,
-        spaceBefore=0,
-        leftIndent=0,
-        alignment=TA_LEFT
+        spaceBefore=0
     )
 
-    # Data label style
-    data_label_style = ParagraphStyle(
-        'DataLabel',
-        parent=normal_style,
-        fontSize=9,
-        fontName='Helvetica-Bold'
-    )
+    # Try to load company logo
+    logo_path = os.path.join(settings.BASE_DIR, 'ADV hex brighter inverted.png')
+    header_content = []
 
-    data_value_style = ParagraphStyle(
-        'DataValue',
-        parent=normal_style,
-        fontSize=9
-    )
+    if os.path.exists(logo_path):
+        # Create logo image with actual aspect ratio (2479:1138 ≈ 2.18:1)
+        logo_height = 0.45*inch
+        logo_width = logo_height * (2479 / 1138)
+        logo_img = Image(logo_path, height=logo_height, width=logo_width)
 
-    # Build left column content (Customer + Aerial Device)
-    left_column = []
-
-    # ===== CUSTOMER SECTION =====
-    left_column.append(Paragraph("CUSTOMER", cover_section_style))
-    customer_data = []
-    if customer:
-        customer_data.append(['Customer:', customer.name])
-        if customer.location:
-            customer_data.append(['Location:', customer.location])
-        if customer.asset_id:
-            customer_data.append(['Asset ID:', customer.asset_id])
-        full_address = customer.get_full_address()
-        if full_address and full_address != 'N/A':
-            customer_data.append(['Address:', full_address])
+        # Header table: text on left, logo on right
+        header_data = [[
+            Paragraph("ANSI A92.2 PERIODIC INSPECTION REPORT", header_style),
+            logo_img
+        ]]
+        header_table = Table(header_data, colWidths=[7.4*inch - logo_width, logo_width])
+        header_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (0, 0), 'LEFT'),
+            ('ALIGN', (1, 0), (1, 0), 'RIGHT'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('LEFTPADDING', (0, 0), (-1, -1), 0),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+            ('TOPPADDING', (0, 0), (-1, -1), 0),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+        ]))
+        story.append(header_table)
     else:
-        customer_data.append(['Customer:', 'N/A'])
+        # No logo - just text
+        story.append(Paragraph("ANSI A92.2 PERIODIC INSPECTION REPORT", header_style))
 
-    customer_table = Table(customer_data, colWidths=[1.5*inch, 4.5*inch])
-    customer_table.setStyle(TableStyle([
-        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, -1), 10),
-        ('LEFTPADDING', (0, 0), (-1, -1), 8),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 8),
-        ('TOPPADDING', (0, 0), (-1, -1), 5),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('LINEBELOW', (0, -1), (-1, -1), 1, colors.HexColor('#3498db')),
+    # Bottom border for header
+    header_line = Table([['']], colWidths=[7.4*inch])
+    header_line.setStyle(TableStyle([
+        ('LINEBELOW', (0, 0), (-1, -1), 1, colors.black),
+        ('TOPPADDING', (0, 0), (-1, -1), 0),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
     ]))
-    story.append(customer_table)
-    story.append(Spacer(1, 0.3*inch))
+    story.append(header_line)
+    story.append(Spacer(1, 5))
+    story.append(create_divider())
+    story.append(Spacer(1, 5))
 
-    # ===== 2. AERIAL DEVICE INFORMATION =====
-    story.append(Paragraph("AERIAL DEVICE", cover_section_style))
-    aerial_data = []
-    if eq.serial_number:
-        aerial_data.append(['Serial #:', eq.serial_number])
-    if eq.make:
-        aerial_data.append(['Manufacturer:', eq.make])
-    if eq.model:
-        aerial_data.append(['Model:', eq.model])
-    if eq.unit_number:
-        aerial_data.append(['Unit #:', eq.unit_number])
-    if eq.year_of_manufacture:
-        aerial_data.append(['Year:', eq.year_of_manufacture])
-    if eq.max_working_height:
-        aerial_data.append(['Max Height:', f"{eq.max_working_height} ft"])
-    if eq.location:
-        aerial_data.append(['Location:', eq.location])
+    # Zone 2: Status Banner (height: 0.7in, margin-top: 10pt)
+    if inspection.status == 'completed' and inspection.overall_result:
+        result_text = inspection.overall_result.upper()
+    else:
+        result_text = 'IN PROGRESS'
 
-    aerial_table = Table(aerial_data, colWidths=[1.5*inch, 4.5*inch])
-    aerial_table.setStyle(TableStyle([
-        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, -1), 10),
-        ('LEFTPADDING', (0, 0), (-1, -1), 8),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 8),
-        ('TOPPADDING', (0, 0), (-1, -1), 5),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+    # Determine background color
+    if result_text == 'IN PROGRESS':
+        bg_color = colors.HexColor('#e0e0e0')
+    else:
+        bg_color = colors.white
+
+    banner_style = ParagraphStyle(
+        'StatusBanner',
+        parent=styles['Heading1'],
+        fontSize=28,
+        fontName='Helvetica-Bold',
+        textColor=colors.black,
+        alignment=TA_CENTER,
+        leading=32
+    )
+
+    banner_table = Table([[Paragraph(result_text, banner_style)]], colWidths=[7.4*inch], rowHeights=[0.85*inch])
+    banner_table.setStyle(TableStyle([
+        ('BOX', (0, 0), (-1, -1), 1.5, colors.black),
+        ('BACKGROUND', (0, 0), (-1, -1), bg_color),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('LINEBELOW', (0, -1), (-1, -1), 1, colors.HexColor('#e67e22')),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('TOPPADDING', (0, 0), (-1, -1), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
     ]))
-    story.append(aerial_table)
-    story.append(Spacer(1, 0.3*inch))
+    story.append(banner_table)
+    story.append(Spacer(1, 5))
+    story.append(create_divider())
+    story.append(Spacer(1, 5))
 
-    # ===== 3. VEHICLE / CHASSIS (if exists) =====
-    has_vehicle_data = any([
-        eq.vehicle_make,
-        eq.vehicle_model,
-        eq.vehicle_unit_number,
-        eq.vehicle_vin,
-        eq.vehicle_year,
-        eq.vehicle_license_plate
-    ])
+    # Zone 3: Top Info Row (height: 1.45in, margin-top: 10pt)
+    # Left card: CUSTOMER INFORMATION
+    customer_fields = {}
+    if customer:
+        if customer.name:
+            customer_fields['Customer'] = customer.name
+        if customer.location:
+            customer_fields['Location'] = customer.location
+        if customer.contact_person_name:
+            customer_fields['Contact'] = customer.contact_person_name
 
-    if has_vehicle_data:
-        story.append(Paragraph("VEHICLE / CHASSIS", cover_section_style))
-        vehicle_data = []
-        if eq.vehicle_make:
-            vehicle_data.append(['Make:', eq.vehicle_make])
-        if eq.vehicle_model:
-            vehicle_data.append(['Model:', eq.vehicle_model])
-        if eq.vehicle_unit_number:
-            vehicle_data.append(['Unit #:', eq.vehicle_unit_number])
-        if eq.vehicle_vin:
-            vehicle_data.append(['VIN:', eq.vehicle_vin])
-        if eq.vehicle_year:
-            vehicle_data.append(['Year:', eq.vehicle_year])
+    if not customer_fields:
+        customer_fields['_placeholder'] = 'No customer information provided'
 
-        vehicle_table = Table(vehicle_data, colWidths=[1.5*inch, 4.5*inch])
-        vehicle_table.setStyle(TableStyle([
-            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, -1), 10),
-            ('LEFTPADDING', (0, 0), (-1, -1), 8),
-            ('RIGHTPADDING', (0, 0), (-1, -1), 8),
-            ('TOPPADDING', (0, 0), (-1, -1), 5),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
-            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ('LINEBELOW', (0, -1), (-1, -1), 1, colors.HexColor('#9b59b6')),
-        ]))
-        story.append(vehicle_table)
-        story.append(Spacer(1, 0.3*inch))
+    customer_card = create_info_card('CUSTOMER&nbsp;INFORMATION', customer_fields, 3.61*inch, 1.45*inch)
 
-    # ===== 4. INSPECTION INFORMATION =====
-    story.append(Paragraph("INSPECTION", cover_section_style))
-    inspection_data = []
+    # Right card: INSPECTION INFORMATION
+    inspection_fields = {}
+    if inspection.started_at:
+        inspection_fields['Inspection Date'] = inspection.started_at.strftime('%Y-%m-%d')
 
-    # Inspector info
     inspector_name = inspection.inspector.get_full_name() or inspection.inspector.username
-    if hasattr(inspection.inspector, 'inspector_profile'):
-        profile = inspection.inspector.inspector_profile
-        if profile.certification_number:
-            inspector_name += f" (Cert# {profile.certification_number})"
+    inspection_fields['Inspector'] = inspector_name
 
-    inspection_data.extend([
-        ['Inspector:', inspector_name],
-        ['Date:', inspection.started_at.strftime('%Y-%m-%d')],
-        ['Certificate #:', inspection.certificate_number or 'N/A'],
-        ['Reference:', inspection.reference or 'N/A'],
-        ['Standard:', 'ANSI/SAIA A92.2 (2021)'],
-        ['Overall Result:', inspection.overall_result.upper() if inspection.overall_result else 'IN PROGRESS'],
+    cert_num = inspection.certificate_number or 'Pending finalization'
+    inspection_fields['Certificate #'] = cert_num
+
+    inspection_card = create_info_card('INSPECTION&nbsp;INFORMATION', inspection_fields, 3.61*inch, 1.45*inch)
+
+    # Create row with both cards
+    top_row_table = Table([[customer_card, inspection_card]], colWidths=[3.61*inch, 3.61*inch])
+    top_row_table.setStyle(TableStyle([
+        ('LEFTPADDING', (0, 0), (-1, -1), 0),
+        ('RIGHTPADDING', (0, 0), (0, -1), 9),
+        ('RIGHTPADDING', (1, 0), (1, -1), 0),
+        ('TOPPADDING', (0, 0), (-1, -1), 0),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+    ]))
+    story.append(top_row_table)
+    story.append(Spacer(1, 5))
+    story.append(create_divider())
+    story.append(Spacer(1, 5))
+
+    # Zone 4: Middle Info Row (height: 1.65in, margin-top: 10pt)
+    # Left card: VEHICLE / CHASSIS
+    vehicle_fields = {}
+    if eq.vehicle_make:
+        vehicle_fields['Make'] = eq.vehicle_make
+    if eq.vehicle_model:
+        vehicle_fields['Model'] = eq.vehicle_model
+    if eq.vehicle_unit_number:
+        vehicle_fields['Unit #'] = eq.vehicle_unit_number
+    if eq.vehicle_vin:
+        vehicle_fields['VIN'] = eq.vehicle_vin
+    if eq.vehicle_year:
+        vehicle_fields['Year'] = eq.vehicle_year
+    if eq.vehicle_license_plate:
+        vehicle_fields['Plate'] = eq.vehicle_license_plate
+
+    if not vehicle_fields:
+        vehicle_fields['_placeholder'] = 'No vehicle information on file'
+
+    vehicle_card = create_info_card('VEHICLE&nbsp;/&nbsp;CHASSIS', vehicle_fields, 3.61*inch, 1.65*inch)
+
+    # Right card: AERIAL DEVICE
+    aerial_fields = {}
+    if eq.make:
+        aerial_fields['Manufacturer'] = eq.make
+    if eq.model:
+        aerial_fields['Model'] = eq.model
+    if eq.serial_number:
+        aerial_fields['Serial Number'] = eq.serial_number
+    if eq.unit_number:
+        aerial_fields['Unit #'] = eq.unit_number
+    if eq.max_working_height:
+        aerial_fields['Max Height'] = f"{eq.max_working_height} ft"
+
+    # Show insulation status
+    if eq.insulation_type == 'insulating':
+        if eq.category:
+            aerial_fields['Insulation Category'] = eq.category.upper()
+        else:
+            aerial_fields['Insulation Category'] = 'Insulating (Category not specified)'
+    elif eq.insulation_type == 'non-insulating':
+        aerial_fields['Insulation Category'] = 'Non-Insulating'
+    else:
+        aerial_fields['Insulation Category'] = 'Not specified'
+
+    aerial_card = create_info_card('AERIAL&nbsp;DEVICE', aerial_fields, 3.61*inch, 1.65*inch)
+
+    # Create row with both cards
+    middle_row_table = Table([[vehicle_card, aerial_card]], colWidths=[3.61*inch, 3.61*inch])
+    middle_row_table.setStyle(TableStyle([
+        ('LEFTPADDING', (0, 0), (-1, -1), 0),
+        ('RIGHTPADDING', (0, 0), (0, -1), 9),
+        ('RIGHTPADDING', (1, 0), (1, -1), 0),
+        ('TOPPADDING', (0, 0), (-1, -1), 0),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+    ]))
+    story.append(middle_row_table)
+    story.append(Spacer(1, 5))
+    story.append(create_divider())
+    story.append(Spacer(1, 5))
+
+    # Zone 5: Result Summary Strip (height: 0.72in, margin-top: 10pt)
+    result_summary_data = [['RESULT SUMMARY']]
+
+    # Determine result logic
+    if inspection.status != 'completed':
+        overall_result_text = 'Pending Completion'
+        status_text = 'In progress'
+        valid_until_text = '—'
+    elif inspection.overall_result == 'pass':
+        overall_result_text = 'PASS'
+        status_text = 'Finalized'
+        # Calculate valid until date (typically 1 year from completion)
+        if inspection.completed_at:
+            from datetime import timedelta
+            valid_until = inspection.completed_at + timedelta(days=365)
+            valid_until_text = valid_until.strftime('%Y-%m-%d')
+        else:
+            valid_until_text = '—'
+    elif inspection.overall_result == 'fail':
+        overall_result_text = 'FAIL'
+        status_text = 'Finalized'
+        valid_until_text = '—'
+    else:
+        overall_result_text = 'Pending Completion'
+        status_text = 'In progress'
+        valid_until_text = '—'
+
+    # Create 3-column row
+    col_style = ParagraphStyle(
+        'ResultCol',
+        parent=styles['Normal'],
+        fontSize=9,
+        alignment=TA_CENTER
+    )
+
+    result_summary_data.append([
+        Paragraph(f"<b>Overall Result:</b><br/>{overall_result_text}", col_style),
+        Paragraph(f"<b>Status:</b><br/>{status_text}", col_style),
+        Paragraph(f"<b>Valid Until:</b><br/>{valid_until_text}", col_style)
     ])
 
-    inspection_table = Table(inspection_data, colWidths=[1.5*inch, 4.5*inch])
-    inspection_table.setStyle(TableStyle([
-        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, -1), 10),
-        ('LEFTPADDING', (0, 0), (-1, -1), 8),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 8),
-        ('TOPPADDING', (0, 0), (-1, -1), 5),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+    result_summary_table = Table(result_summary_data, colWidths=[7.4*inch / 3] * 3, rowHeights=[0.25*inch, 0.47*inch])
+    result_summary_table.setStyle(TableStyle([
+        ('BOX', (0, 0), (-1, -1), 1, colors.black),
+        ('GRID', (0, 1), (-1, -1), 0.5, colors.grey),
+        ('LINEBELOW', (0, 0), (-1, 0), 1, colors.black),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('LINEBELOW', (0, -1), (-1, -1), 1, colors.HexColor('#2c3e50')),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 10),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
     ]))
+    story.append(result_summary_table)
+    story.append(Spacer(1, 5))
+    story.append(create_divider())
+    story.append(Spacer(1, 7))
 
-    story.append(inspection_table)
-    story.append(Spacer(1, 0.35*inch))
+    # Zone 6: Company Footer (height: 0.55in, margin-top: 12pt)
+    # Get company info
+    try:
+        company = CompanyInfo.objects.first()
+        if company:
+            # Line 1: company name, address
+            line1_parts = []
+            if company.name:
+                line1_parts.append(company.name)
+            if company.address_line1:
+                addr_parts = [company.address_line1]
+                if company.city and company.state:
+                    addr_parts.append(f"{company.city}, {company.state} {company.zip_code or ''}".strip())
+                line1_parts.append(', '.join(addr_parts))
 
-    # ===== 5. INSPECTION COMPANY =====
-    company = CompanyInfo.objects.first()
-    if company:
-        story.append(Paragraph("INSPECTION COMPANY", cover_section_style))
-        company_data = []
-        company_data.append(['Company:', company.name])
+            line1 = ' | '.join(line1_parts) if line1_parts else ''
 
-        full_address = company.get_full_address()
-        if full_address and full_address != 'N/A':
-            company_data.append(['Address:', full_address])
-        if company.phone:
-            company_data.append(['Phone:', company.phone])
-        if company.license_number:
-            company_data.append(['License #:', company.license_number])
+            # Line 2: phone, email, certifications
+            line2_parts = []
+            if company.phone:
+                line2_parts.append(f"Phone: {company.phone}")
+            if company.email:
+                line2_parts.append(f"Email: {company.email}")
+            if company.certifications:
+                line2_parts.append(company.certifications)
 
-        company_table = Table(company_data, colWidths=[1.5*inch, 4.5*inch])
-        company_table.setStyle(TableStyle([
-            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, -1), 10),
-            ('LEFTPADDING', (0, 0), (-1, -1), 8),
-            ('RIGHTPADDING', (0, 0), (-1, -1), 8),
-            ('TOPPADDING', (0, 0), (-1, -1), 5),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
-            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ('LINEBELOW', (0, -1), (-1, -1), 1, colors.HexColor('#27ae60')),
-        ]))
+            line2 = ' | '.join(line2_parts) if line2_parts else ''
 
-        story.append(company_table)
+            footer_text = f"{line1}<br/>{line2}" if line1 or line2 else "Inspection Company Information"
+        else:
+            footer_text = "Inspection Company Information"
+    except:
+        footer_text = "Inspection Company Information"
+
+    footer_style = ParagraphStyle(
+        'CompanyFooter',
+        parent=styles['Normal'],
+        fontSize=7,
+        alignment=TA_CENTER,
+        textColor=colors.HexColor('#555555')
+    )
+
+    # Top border line
+    footer_line = Table([['']], colWidths=[7.4*inch])
+    footer_line.setStyle(TableStyle([
+        ('LINEABOVE', (0, 0), (-1, -1), 1, colors.black),
+        ('TOPPADDING', (0, 0), (-1, -1), 0),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
+    ]))
+    story.append(footer_line)
+
+    story.append(Paragraph(footer_text, footer_style))
 
     # Page break before executive summary
     story.append(PageBreak())
 
     # ===== EXECUTIVE SUMMARY =====
-    story.append(Paragraph("Executive Summary", heading_style))
-    story.append(Spacer(1, 0.15*inch))
+    # Header
+    exec_summary_header_style = ParagraphStyle(
+        'ExecSummaryHeader',
+        parent=styles['Heading1'],
+        fontSize=18,
+        fontName='Helvetica-Bold',
+        textColor=colors.black,
+        spaceAfter=4,
+        spaceBefore=0
+    )
+    exec_summary_subtitle_style = ParagraphStyle(
+        'ExecSummarySubtitle',
+        parent=styles['Normal'],
+        fontSize=9,
+        textColor=colors.HexColor('#666666'),
+        spaceAfter=12
+    )
+
+    story.append(Paragraph("EXECUTIVE SUMMARY", exec_summary_header_style))
+    story.append(Paragraph("ANSI A92.2 Periodic Inspection", exec_summary_subtitle_style))
+    story.append(Spacer(1, 0.1*inch))
 
     # Calculate statistics
     total_questions = inspection.answers.count()
@@ -321,108 +517,235 @@ def generate_package_pdf(inspection):
     test_module_count = inspection.test_modules.count()
 
     # Calculate section breakdown
-    freq_count = inspection.answers.filter(question__section__title__icontains='Frequent').count()
-    periodic_count = inspection.answers.filter(question__section__title__icontains='Periodic').count()
+    freq_answers = inspection.answers.filter(question__section__title__icontains='Frequent')
+    freq_total = freq_answers.count()
+    freq_complete = freq_answers.exclude(status='na').count()
 
-    # Summary text with more context
-    result_color = '#27ae60' if inspection.overall_result == 'pass' else '#e74c3c' if inspection.overall_result == 'fail' else '#95a5a6'
-    result_text = inspection.overall_result.upper() if inspection.overall_result else 'N/A'
+    periodic_answers = inspection.answers.filter(question__section__title__icontains='Periodic')
+    periodic_total = periodic_answers.count()
+    periodic_complete = periodic_answers.exclude(status='na').count()
 
-    inspection_date = inspection.started_at.strftime('%B %d, %Y') if inspection.started_at else 'N/A'
-    inspector_name = inspection.inspector.get_full_name() or inspection.inspector.username
+    dielectric_test_count = inspection.test_modules.filter(template__name__icontains='Dielectric').count()
+    load_test_count = inspection.test_modules.filter(template__name__icontains='Load').count()
 
-    summary_text = f"""
-    This ANSI A92.2 periodic inspection was completed on <b>{inspection_date}</b> by <b>{inspector_name}</b> with
-    an overall result of <b><font color="{result_color}">{result_text}</font></b>. The inspection evaluated {total_questions} items
-    across Frequent Inspection ({freq_count} items) and Periodic Inspection ({periodic_count} items) sections.
-    """
-    if test_module_count > 0:
-        summary_text += f" {test_module_count} formal test procedure(s) were performed."
+    # Status Block: 3-column card
+    status_block_data = []
 
-    story.append(Paragraph(summary_text, normal_style))
-    story.append(Spacer(1, 0.2*inch))
-
-    # Statistics table with modern styling
-    stats_data = [
-        ['Inspection Results', 'Count', 'Percentage'],
-        ['✓ Passed', str(pass_count), f'{(pass_count/total_questions*100) if total_questions > 0 else 0:.1f}%'],
-        ['✗ Failed', str(fail_count), f'{(fail_count/total_questions*100) if total_questions > 0 else 0:.1f}%'],
-        ['— Not Applicable', str(na_count), f'{(na_count/total_questions*100) if total_questions > 0 else 0:.1f}%'],
-        ['Total Items Inspected', str(total_questions), '100%'],
-    ]
-
-    if test_module_count > 0 or defect_count > 0:
-        stats_data.append(['', '', ''])  # Separator row
-        if test_module_count > 0:
-            stats_data.append(['Formal Tests Performed', str(test_module_count), '—'])
-        if defect_count > 0:
-            stats_data.append(['Defects Documented', str(defect_count), '—'])
-
-    stats_table = Table(stats_data, colWidths=[3*inch, 1.5*inch, 1.5*inch])
-    stats_styles = [
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2c3e50')),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-        ('ALIGN', (0, 0), (0, -1), 'LEFT'),
-        ('ALIGN', (1, 0), (-1, -1), 'CENTER'),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTNAME', (0, 4), (-1, 4), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 0), 11),
-        ('TOPPADDING', (0, 0), (-1, 0), 10),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
-        ('TOPPADDING', (0, 1), (-1, -1), 6),
-        ('BOTTOMPADDING', (0, 1), (-1, -1), 6),
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor('#d4edda')),  # Pass row green
-        ('BACKGROUND', (0, 2), (-1, 2), colors.HexColor('#f8d7da')),  # Fail row red
-        ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor('#f0f0f0')),  # N/A row gray
-    ]
-
-    # Add separator row styling if present
-    if test_module_count > 0 or defect_count > 0:
-        separator_row = 5
-        stats_styles.append(('LINEABOVE', (0, separator_row), (-1, separator_row), 1.5, colors.HexColor('#2c3e50')))
-        stats_styles.append(('BACKGROUND', (0, separator_row), (-1, separator_row), colors.white))
-        stats_styles.append(('TOPPADDING', (0, separator_row), (-1, separator_row), 2))
-        stats_styles.append(('BOTTOMPADDING', (0, separator_row), (-1, separator_row), 2))
-
-    stats_table.setStyle(TableStyle(stats_styles))
-    story.append(stats_table)
-    story.append(Spacer(1, 0.25*inch))
-
-    # Key findings with actionable information
-    story.append(Paragraph("<b>Key Findings & Recommendations:</b>", subheading_style))
-    story.append(Spacer(1, 0.1*inch))
-
-    if fail_count > 0 or defect_count > 0:
-        if fail_count > 0:
-            story.append(Paragraph(
-                f"• <b>{fail_count} inspection item(s) failed</b> - Equipment requires corrective action before return to service",
-                normal_style
-            ))
-        if defect_count > 0:
-            story.append(Paragraph(
-                f"• <b>{defect_count} defect(s) documented</b> with photographic evidence - Refer to Defects section for details and repair recommendations",
-                normal_style
-            ))
-        if pass_count > 0:
-            story.append(Paragraph(
-                f"• {pass_count} item(s) passed inspection and meet ANSI A92.2 requirements",
-                normal_style
-            ))
+    if inspection.status == 'completed':
+        status_display = 'Completed'
+        result_display = inspection.overall_result.upper() if inspection.overall_result else 'N/A'
+        finalized_date = inspection.completed_at.strftime('%Y-%m-%d') if inspection.completed_at else 'N/A'
     else:
-        story.append(Paragraph(
-            "• <b>All inspected items passed</b> - Equipment meets ANSI A92.2 compliance standards",
-            normal_style
-        ))
-        story.append(Paragraph(
-            "• No defects or safety concerns identified during this inspection",
-            normal_style
-        ))
-        story.append(Paragraph(
-            "• Equipment is approved for continued service per inspection requirements",
-            normal_style
-        ))
+        status_display = 'In Progress'
+        result_display = 'Not determined'
+        finalized_date = '—'
+
+    status_style = ParagraphStyle(
+        'StatusBlock',
+        parent=styles['Normal'],
+        fontSize=9,
+        alignment=TA_CENTER
+    )
+
+    status_block_data.append([
+        Paragraph(f"<b>Inspection Status:</b><br/>{status_display}", status_style),
+        Paragraph(f"<b>Overall Result:</b><br/>{result_display}", status_style),
+        Paragraph(f"<b>Finalized Date:</b><br/>{finalized_date}", status_style)
+    ])
+
+    status_block_table = Table(status_block_data, colWidths=[7.4*inch / 3] * 3)
+    status_block_table.setStyle(TableStyle([
+        ('BOX', (0, 0), (-1, -1), 1, colors.black),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+    ]))
+    story.append(status_block_table)
+    story.append(Spacer(1, 0.15*inch))
+
+    # Metrics Row: 5 metric cards
+    # Helper function to create individual metric cards
+    def create_metric_card(number, label):
+        """Create a bordered metric card with number on top and label on bottom"""
+        metric_number_style = ParagraphStyle(
+            'MetricNumber',
+            parent=styles['Normal'],
+            fontSize=24,
+            fontName='Helvetica-Bold',
+            alignment=TA_CENTER,
+            textColor=colors.black
+        )
+        metric_label_style = ParagraphStyle(
+            'MetricLabel',
+            parent=styles['Normal'],
+            fontSize=8,
+            fontName='Helvetica-Bold',
+            alignment=TA_CENTER,
+            textColor=colors.HexColor('#666666')
+        )
+
+        card_data = [
+            [Paragraph(str(number), metric_number_style)],
+            [Paragraph(label.upper(), metric_label_style)]
+        ]
+
+        card = Table(card_data, rowHeights=[0.6*inch, 0.4*inch])
+        card.setStyle(TableStyle([
+            ('BOX', (0, 0), (-1, -1), 1, colors.black),
+            ('BACKGROUND', (0, 0), (-1, 0), colors.Color(0.95, 0.95, 0.95)),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('TOPPADDING', (0, 0), (-1, -1), 6),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ]))
+        return card
+
+    # Create 5 separate metric cards in a single-row table
+    metrics_data = [[
+        create_metric_card(total_questions, "TOTAL ITEMS"),
+        create_metric_card(pass_count, "PASSED"),
+        create_metric_card(fail_count, "FAILED"),
+        create_metric_card(na_count, "N/A"),
+        create_metric_card(defect_count, "DEFECTS")
+    ]]
+
+    metrics_table = Table(metrics_data, colWidths=[7.4*inch / 5] * 5)
+    metrics_table.setStyle(TableStyle([
+        ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.black),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 0),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+        ('TOPPADDING', (0, 0), (-1, -1), 0),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+    ]))
+    story.append(metrics_table)
+    story.append(Spacer(1, 0.15*inch))
+
+    # Section Status Table
+    section_header_style = ParagraphStyle(
+        'SectionTableHeader',
+        parent=styles['Normal'],
+        fontSize=11,
+        fontName='Helvetica-Bold',
+        textColor=colors.black,
+        spaceAfter=8
+    )
+    story.append(Paragraph("Section Status", section_header_style))
+
+    section_table_style = ParagraphStyle(
+        'SectionTableText',
+        parent=styles['Normal'],
+        fontSize=9
+    )
+
+    # Determine section statuses
+    if inspection.status == 'completed':
+        # Show PASS/FAIL/Not performed
+        freq_status = 'PASS' if freq_complete > 0 and fail_count == 0 else ('FAIL' if fail_count > 0 else 'Not performed')
+        periodic_status = 'PASS' if periodic_complete > 0 and fail_count == 0 else ('FAIL' if fail_count > 0 else 'Not performed')
+        dielectric_status = 'PASS' if dielectric_test_count > 0 else 'Not performed'
+        load_status = 'PASS' if load_test_count > 0 else 'Not performed'
+    else:
+        # Show completion status
+        freq_status = f"{freq_complete} / {freq_total} complete" if freq_total > 0 else "Not started"
+        periodic_status = f"{periodic_complete} / {periodic_total} complete" if periodic_total > 0 else "Not started"
+        dielectric_status = f"{dielectric_test_count} test(s) added" if dielectric_test_count > 0 else "Not started"
+        load_status = f"{load_test_count} test(s) added" if load_test_count > 0 else "Not started"
+
+    section_data = [
+        ['Frequent Inspection', freq_status],
+        ['Periodic Inspection', periodic_status],
+        ['Dielectric Testing', dielectric_status],
+        ['Load Test', load_status]
+    ]
+
+    section_table = Table(section_data, colWidths=[3.7*inch, 3.7*inch])
+    section_table.setStyle(TableStyle([
+        ('BOX', (0, 0), (-1, -1), 1, colors.black),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+        ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ('LEFTPADDING', (0, 0), (-1, -1), 8),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+    ]))
+    story.append(section_table)
+    story.append(Spacer(1, 0.15*inch))
+
+    # Key Findings (state-aware)
+    findings_header_style = ParagraphStyle(
+        'FindingsHeader',
+        parent=styles['Normal'],
+        fontSize=11,
+        fontName='Helvetica-Bold',
+        textColor=colors.black,
+        spaceAfter=8
+    )
+    story.append(Paragraph("Key Findings", findings_header_style))
+
+    bullet_style = ParagraphStyle(
+        'BulletStyle',
+        parent=styles['Normal'],
+        fontSize=9,
+        leftIndent=12,
+        spaceAfter=4
+    )
+
+    # STATE-AWARE logic
+    if inspection.status != 'completed':
+        # In progress
+        story.append(Paragraph("• Inspection has not been finalized", bullet_style))
+        story.append(Paragraph("• Required sections remain incomplete", bullet_style))
+        if defect_count > 0:
+            story.append(Paragraph(f"• {defect_count} defect(s) have been documented so far", bullet_style))
+    elif inspection.overall_result == 'pass' and fail_count == 0 and defect_count == 0:
+        # Completed and passed with no issues
+        story.append(Paragraph("• All required inspection items passed", bullet_style))
+        story.append(Paragraph("• No defects or safety concerns identified", bullet_style))
+        story.append(Paragraph("• Unit is approved for continued service", bullet_style))
+    else:
+        # Completed with defects/failures
+        if defect_count > 0:
+            story.append(Paragraph(f"• {defect_count} defect(s) documented with photos and notes", bullet_style))
+        if fail_count > 0:
+            story.append(Paragraph(f"• {fail_count} inspection item(s) failed", bullet_style))
+        story.append(Paragraph("• Unit must not be returned to service until repaired", bullet_style))
+        if pass_count > 0:
+            story.append(Paragraph(f"• {pass_count} item(s) passed and meet ANSI A92.2 requirements", bullet_style))
+
+    story.append(Spacer(1, 0.15*inch))
+
+    # Next Action
+    action_header_style = ParagraphStyle(
+        'ActionHeader',
+        parent=styles['Normal'],
+        fontSize=11,
+        fontName='Helvetica-Bold',
+        textColor=colors.black,
+        spaceAfter=8
+    )
+    story.append(Paragraph("Next Action", action_header_style))
+
+    action_style = ParagraphStyle(
+        'ActionStyle',
+        parent=styles['Normal'],
+        fontSize=9
+    )
+
+    # Determine next action
+    if inspection.status != 'completed':
+        next_action = "Complete all required sections and finalize the inspection."
+    elif inspection.overall_result == 'pass' and fail_count == 0 and defect_count == 0:
+        next_action = "File report and issue certificate."
+    else:
+        next_action = "Repair identified defects and perform re-inspection before returning unit to service."
+
+    story.append(Paragraph(next_action, action_style))
 
     # Page break before details
     story.append(PageBreak())
