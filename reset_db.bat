@@ -26,7 +26,7 @@ echo.
 echo ============================================================
 echo Step 2: Flushing database (keeping migrations)...
 echo ============================================================
-.venv\Scripts\python.exe manage.py flush --no-input
+python manage.py flush --no-input
 if errorlevel 1 (
     echo [ERROR] Failed to flush database
     pause
@@ -38,7 +38,7 @@ echo.
 echo ============================================================
 echo Step 3: Applying migrations...
 echo ============================================================
-.venv\Scripts\python.exe manage.py migrate
+python manage.py migrate
 if errorlevel 1 (
     echo [ERROR] Failed to apply migrations
     pause
@@ -50,7 +50,7 @@ echo.
 echo ============================================================
 echo Step 4: Seeding initial data (users, company, equipment)...
 echo ============================================================
-.venv\Scripts\python.exe manage.py seed_initial_data --force-passwords
+python manage.py seed_initial_data --force-passwords
 if errorlevel 1 (
     echo [ERROR] Failed to seed initial data
     pause
@@ -63,28 +63,28 @@ echo ============================================================
 echo Step 5: Importing templates...
 echo ============================================================
 if exist "periodic_a922.json" (
-    .venv\Scripts\python.exe manage.py import_new_template periodic_a922.json
+    python manage.py import_new_template periodic_a922.json
 )
 if exist "cat_ab.json" (
-    .venv\Scripts\python.exe manage.py import_new_template cat_ab.json
+    python manage.py import_new_template cat_ab.json
 )
 if exist "cat_cde.json" (
-    .venv\Scripts\python.exe manage.py import_new_template cat_cde.json
+    python manage.py import_new_template cat_cde.json
 )
 if exist "uppercontrools.json" (
-    .venv\Scripts\python.exe manage.py import_new_template uppercontrools.json
+    python manage.py import_new_template uppercontrools.json
 )
 if exist "liners.json" (
-    .venv\Scripts\python.exe manage.py import_new_template liners.json
+    python manage.py import_new_template liners.json
 )
 if exist "ladders.json" (
-    .venv\Scripts\python.exe manage.py import_new_template ladders.json
+    python manage.py import_new_template ladders.json
 )
 if exist "chassis.json" (
-    .venv\Scripts\python.exe manage.py import_new_template chassis.json
+    python manage.py import_new_template chassis.json
 )
 if exist "load_test_structural.json" (
-    .venv\Scripts\python.exe manage.py import_new_template load_test_structural.json
+    python manage.py import_new_template load_test_structural.json
 )
 echo [OK] Templates imported
 
