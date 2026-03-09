@@ -502,6 +502,25 @@ EOF
             print_status "SQLite database removed"
         fi
 
+        # Check if PostgreSQL database needs reset
+        print_info "Checking PostgreSQL database schema..."
+        source .venv/bin/activate
+
+        # Try to check if tables exist
+        TABLE_CHECK=$(sudo -u postgres psql -d inspectionapp -tAc "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'inspections_companyinfo');" 2>/dev/null || echo "f")
+
+        if [ "$TABLE_CHECK" = "f" ]; then
+            print_warning "Database schema incomplete or corrupted. Resetting database..."
+
+            # Drop and recreate database
+            sudo -u postgres psql <<EOF
+DROP DATABASE IF EXISTS inspectionapp;
+CREATE DATABASE inspectionapp OWNER inspectionapp;
+GRANT ALL PRIVILEGES ON DATABASE inspectionapp TO inspectionapp;
+EOF
+            print_status "Database reset complete"
+        fi
+
         setup_python_env
         setup_database
 
