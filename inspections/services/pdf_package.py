@@ -5,7 +5,7 @@ from django.conf import settings
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.enums import TA_CENTER, TA_LEFT
+from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
 from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, PageBreak,
     Table, TableStyle, Image, PageTemplate, Frame
@@ -525,8 +525,13 @@ def generate_package_pdf(inspection):
     periodic_total = periodic_answers.count()
     periodic_complete = periodic_answers.exclude(status='na').count()
 
-    dielectric_test_count = inspection.test_modules.filter(template__name__icontains='Dielectric').count()
-    load_test_count = inspection.test_modules.filter(template__name__icontains='Load').count()
+    # Get all test module templates and their completion status
+    from inspections.models import Template
+    all_test_templates = Template.objects.filter(kind='test').order_by('name')
+    test_module_status = {}
+    for template in all_test_templates:
+        performed_count = inspection.test_modules.filter(template=template).count()
+        test_module_status[template.name] = performed_count > 0
 
     # Status Block: 3-column card
     status_block_data = []
@@ -646,23 +651,25 @@ def generate_package_pdf(inspection):
         # Show PASS/FAIL/Not performed
         freq_status = 'PASS' if freq_complete > 0 and fail_count == 0 else ('FAIL' if fail_count > 0 else 'Not performed')
         periodic_status = 'PASS' if periodic_complete > 0 and fail_count == 0 else ('FAIL' if fail_count > 0 else 'Not performed')
-        dielectric_status = 'PASS' if dielectric_test_count > 0 else 'Not performed'
-        load_status = 'PASS' if load_test_count > 0 else 'Not performed'
     else:
         # Show completion status
         freq_status = f"{freq_complete} / {freq_total} complete" if freq_total > 0 else "Not started"
         periodic_status = f"{periodic_complete} / {periodic_total} complete" if periodic_total > 0 else "Not started"
-        dielectric_status = f"{dielectric_test_count} test(s) added" if dielectric_test_count > 0 else "Not started"
-        load_status = f"{load_test_count} test(s) added" if load_test_count > 0 else "Not started"
 
+    # Build section data with all test modules
     section_data = [
         ['Frequent Inspection', freq_status],
         ['Periodic Inspection', periodic_status],
-        ['Dielectric Testing', dielectric_status],
-        ['Load Test', load_status]
     ]
 
-    section_table = Table(section_data, colWidths=[3.7*inch, 3.7*inch])
+    # Add all test module types
+    for template_name, is_performed in test_module_status.items():
+        # Shorten display name
+        display_name = template_name.replace('ANSI A92.2 (2021) ', '').replace('Test - ', '').replace('Dielectric Test - ', 'Dielectric - ')
+        status = 'Performed' if is_performed else 'Not Performed'
+        section_data.append([display_name, status])
+
+    section_table = Table(section_data, colWidths=[5.2*inch, 2.2*inch])
     section_table.setStyle(TableStyle([
         ('BOX', (0, 0), (-1, -1), 1, colors.black),
         ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
@@ -747,12 +754,65 @@ def generate_package_pdf(inspection):
 
     story.append(Paragraph(next_action, action_style))
 
-    # Page break before details
-    story.append(PageBreak())
+    # ===== BUILD DEFECT MAPPING =====
+    # Create a mapping of question_id -> defect_appendix_number for referencing
+    defects = inspection.defects.prefetch_related('photos', 'question').all()
+    defect_mapping = {}
+    for idx, defect in enumerate(defects, 1):
+        if defect.question:
+            defect_mapping[defect.question.id] = idx
+
+    # Page break before details (only if test modules or inspection answers exist)
+    test_modules = inspection.test_modules.select_related('template').all()
+    has_content_after_summary = test_modules.exists() or inspection.answers.exists()
+
+    if has_content_after_summary:
+        story.append(PageBreak())
+
+        # ===== INSPECTION DISCLAIMER =====
+        disclaimer_heading_style = ParagraphStyle(
+            'DisclaimerHeading',
+            parent=heading_style,
+            fontSize=14,
+            fontName='Helvetica-Bold',
+            textColor=colors.HexColor('#333333'),
+            spaceAfter=12,
+            alignment=TA_CENTER
+        )
+
+        disclaimer_body_style = ParagraphStyle(
+            'DisclaimerBody',
+            parent=normal_style,
+            fontSize=10,
+            leading=14,
+            textColor=colors.HexColor('#444444'),
+            alignment=TA_JUSTIFY,
+            spaceAfter=10
+        )
+
+        # Read disclaimer from file
+        disclaimer_path = os.path.join(settings.BASE_DIR, 'disclaimer.txt')
+        if os.path.exists(disclaimer_path):
+            with open(disclaimer_path, 'r', encoding='utf-8') as f:
+                disclaimer_lines = f.readlines()
+
+            # Add disclaimer heading
+            story.append(Paragraph("INSPECTION DISCLAIMER", disclaimer_heading_style))
+            story.append(Spacer(1, 0.1*inch))
+
+            # Add disclaimer paragraphs (skip title line and empty lines at start)
+            started = False
+            for line in disclaimer_lines:
+                line = line.strip()
+                if not started and line and line != 'Inspection Disclaimer':
+                    started = True
+                if started and line:
+                    story.append(Paragraph(line, disclaimer_body_style))
+
+            story.append(Spacer(1, 0.3*inch))
 
     # ===== TEST MODULES SECTION (if any) =====
     # Extract and format test modules as dedicated test result pages
-    test_modules = inspection.test_modules.select_related('template').all()
     for test_module in test_modules:
         if not test_module.test_data:
             continue
@@ -900,84 +960,140 @@ def generate_package_pdf(inspection):
                     }
                 answers_by_phase[phase]['direct_answers']['answers'].append(answer)
 
-    # Separate functional tests from other sections
-    functional_tests_data = None
-    if 'Frequent Inspection' in answers_by_phase:
-        freq_subsections = answers_by_phase['Frequent Inspection']['subsections']
-        if 'Functional Tests' in freq_subsections:
-            functional_tests_data = freq_subsections.pop('Functional Tests')
+    # Keep functional tests in Frequent Inspection section (no longer separate)
+
+    # Define system groupings for better readability
+    FREQUENT_GROUPING = {
+        'General Condition': ['Visual Walkaround', 'Damaged Components'],
+        'Controls': ['Controls and Interlocks'],
+        'Safety Devices': ['Safety Devices'],
+        'Insulating Components': ['Insulating Components'],
+        'Hydraulic / Pneumatic Systems': ['Hydraulic and Pneumatic Systems'],
+        'Electrical Systems': ['Electrical Systems'],
+        'Functional Tests': ['Functional Tests'],
+        'Markings and Decals': ['Markings and Decals'],
+        'Placards and Test Expiration': ['Placards and Test Expiration']
+    }
+
+    PERIODIC_GROUPING = {
+        'Structural Components': ['Structural Components', 'Welds'],
+        'Mechanical Components': ['Wear Components', 'Fasteners'],
+        'Hydraulic System': ['Hydraulic System Settings', 'Hoses and Fittings', 'Hydraulic Cylinders', 'Filters'],
+        'Electrical Components': ['Electrical Components'],
+        'Boom Operation': ['Boom Performance'],
+        'Markings and Identification': ['Markings'],
+        'Insulating System': ['Vacuum Limiting Systems', 'Insulating Boom Cleanliness'],
+        'Upper Control Resistance': ['Upper Control Resistance']
+    }
+
+    def regroup_by_system(phase_name, subsections_dict):
+        """Regroup subsections into logical equipment systems"""
+        if phase_name == 'Frequent Inspection':
+            grouping = FREQUENT_GROUPING
+        elif phase_name == 'Periodic Inspection':
+            grouping = PERIODIC_GROUPING
+        else:
+            # No regrouping for other phases
+            return {name: [data] for name, data in subsections_dict.items()}
+
+        # Build new structure
+        system_groups = {}
+        for system_name, subsection_names in grouping.items():
+            system_groups[system_name] = []
+            for subsection_name in subsection_names:
+                if subsection_name in subsections_dict:
+                    system_groups[system_name].append(subsections_dict[subsection_name])
+
+        # Handle any subsections not in grouping (fallback)
+        for subsection_name, data in subsections_dict.items():
+            found = False
+            for subsection_list in grouping.values():
+                if subsection_name in subsection_list:
+                    found = True
+                    break
+            if not found:
+                # Create standalone system for ungrouped items
+                system_groups[subsection_name] = [data]
+
+        # Remove empty systems
+        return {k: v for k, v in system_groups.items() if v}
 
     # Render each phase with its subsections
     for phase_name, phase_data in answers_by_phase.items():
         # Phase header (major heading)
         story.append(PageBreak())
-        phase_heading = phase_name.upper()
+        story.append(Paragraph(phase_name.upper(), heading_style))
+
+        # ANSI reference below phase title - ultra-compact
         if phase_data.get('ansi_ref'):
-            phase_heading = f"{phase_name.upper()} (ANSI {phase_data['ansi_ref']})"
-        story.append(Paragraph(phase_heading, heading_style))
-        story.append(Spacer(1, 0.25*inch))
+            phase_ansi_style = ParagraphStyle(
+                'PhaseANSIRef',
+                parent=normal_style,
+                fontSize=9,
+                textColor=colors.HexColor('#666666'),
+                spaceAfter=3
+            )
+            story.append(Paragraph(f"<i>ANSI A92.2 Section {phase_data['ansi_ref']}</i>", phase_ansi_style))
 
         # Render direct answers if any (for non-hierarchical sections)
         if 'direct_answers' in phase_data:
             answers = phase_data['direct_answers']['answers']
             section = phase_data['direct_answers']['section']
-            render_answer_table(story, answers, section, subheading_style, normal_style)
+            render_answer_table(story, answers, section, subheading_style, normal_style, defect_mapping, show_header=True)
 
-        # Render subsections
-        for subsection_name, subsection_data in phase_data['subsections'].items():
-            section = subsection_data['section']
-            answers = subsection_data['answers']
+        # Render subsections and collect stats
+        phase_total = 0
+        phase_passed = 0
+        phase_failed = 0
+        phase_na = 0
 
-            # Subsection title with ANSI reference
-            subsection_heading = subsection_name
-            if section.ansi_reference:
-                subsection_heading = f"{subsection_name} (ANSI {section.ansi_reference})"
-            story.append(Paragraph(subsection_heading, subheading_style))
+        # Regroup subsections into logical systems
+        system_groups = regroup_by_system(phase_name, phase_data['subsections'])
 
-            render_answer_table(story, answers, section, subheading_style, normal_style)
+        # Track if we've shown the table header yet
+        header_shown = False
 
-    # ===== FUNCTIONAL TEST RESULTS PAGE =====
-    if functional_tests_data:
-        story.append(PageBreak())
-        story.append(Paragraph("FUNCTIONAL TEST RESULTS", heading_style))
-        story.append(Spacer(1, 0.25*inch))
-
-        section = functional_tests_data['section']
-        answers = functional_tests_data['answers']
-
-        # Group functional tests by test type for cleaner presentation
-        for answer in answers:
-            # Extract test name from question
-            test_item = answer.question.prompt
-            status = answer.status.upper()
-
-            # Format status
-            if status == 'PASS':
-                status_display = 'PASS'
-                status_color = colors.HexColor('#27ae60')
-            elif status == 'FAIL':
-                status_display = 'FAIL'
-                status_color = colors.HexColor('#e74c3c')
-            else:
-                status_display = 'N/A'
-                status_color = colors.HexColor('#95a5a6')
-
-            # Display test item and result
-            test_style = ParagraphStyle(
-                'TestItem',
-                parent=normal_style,
-                fontSize=11,
+        for system_name, subsection_list in system_groups.items():
+            # System title (replaces subsection title) - ultra-compact spacing
+            system_title_style = ParagraphStyle(
+                'SystemTitle',
+                parent=subheading_style,
+                fontSize=10,
                 fontName='Helvetica-Bold',
-                spaceAfter=4
+                spaceAfter=1,  # Minimal space before items
+                spaceBefore=4   # Small space from previous section
             )
-            story.append(Paragraph(test_item, test_style))
+            story.append(Paragraph(system_name, system_title_style))
 
-            result_text = f'<font color="{status_color}"><b>{status_display}</b></font>'
-            if answer.notes and not (answer.notes.startswith('Question') and ' - ' in answer.notes):
-                result_text += f' – {answer.notes}'
+            # Collect all answers from all subsections in this system
+            all_answers = []
+            for subsection_data in subsection_list:
+                all_answers.extend(subsection_data['answers'])
 
-            story.append(Paragraph(result_text, normal_style))
-            story.append(Spacer(1, 0.15*inch))
+            # Sort answers: FAIL first, then PASS, then NA
+            def sort_key(answer):
+                status_order = {'fail': 0, 'pass': 1, 'na': 2}
+                return status_order.get(answer.status.lower(), 3)
+            all_answers.sort(key=sort_key)
+
+            # Get section for ANSI reference (use first subsection's section)
+            section = subsection_list[0]['section'] if subsection_list else None
+
+            # Show header only on first system
+            render_answer_table(story, all_answers, section, subheading_style, normal_style, defect_mapping, show_header=(not header_shown))
+            header_shown = True
+
+            # Count answers for summary
+            for answer in all_answers:
+                phase_total += 1
+                if answer.status == 'pass':
+                    phase_passed += 1
+                elif answer.status == 'fail':
+                    phase_failed += 1
+                else:
+                    phase_na += 1
+
+        # Section summaries removed for compact layout (totals already in Executive Summary)
 
     # ===== TEST MODULE QUESTION RESULTS =====
     # Render each test module's questions on its own page
@@ -1003,60 +1119,92 @@ def generate_package_pdf(inspection):
                     section_heading = f"{section_title} (ANSI {section.ansi_reference})"
                 story.append(Paragraph(section_heading, subheading_style))
 
-            render_answer_table(story, answers, section, subheading_style, normal_style)
+            render_answer_table(story, answers, section, subheading_style, normal_style, defect_mapping)
 
-    # ===== DEFECTS SECTION =====
-    defects = inspection.defects.prefetch_related('photos').all()
-
+    # ===== APPENDIX A: DEFECTS SECTION =====
+    # Moved to end of document for better organization
     if defects.exists():
         story.append(PageBreak())
-        story.append(Paragraph("Defects", heading_style))
+        appendix_heading_style = ParagraphStyle(
+            'AppendixHeading',
+            parent=heading_style,
+            fontSize=18,
+            fontName='Helvetica-Bold',
+            textColor=colors.black,
+            spaceAfter=12
+        )
+        story.append(Paragraph("APPENDIX A: DEFECTS", appendix_heading_style))
         story.append(Spacer(1, 0.15*inch))
 
         for idx, defect in enumerate(defects, 1):
-            # Defect header with number
+            # Each defect gets its own page (except first one)
+            if idx > 1:
+                story.append(PageBreak())
+
+            # Defect header with appendix number
             defect_header_style = ParagraphStyle(
                 'DefectHeader',
                 parent=subheading_style,
-                fontSize=12,
+                fontSize=14,
                 fontName='Helvetica-Bold',
                 textColor=colors.HexColor('#e74c3c'),
-                spaceAfter=8,
+                spaceAfter=10,
                 spaceBefore=0
             )
-            story.append(Paragraph(f"Defect #{idx}", defect_header_style))
+            story.append(Paragraph(f"Defect A-{idx}", defect_header_style))
 
-            # Build defect information table (compact, no huge boxes)
+            # Build defect information table
             defect_data = []
 
             if defect.question:
-                # Related question with ANSI reference
+                # ANSI reference with parent clause (avoid duplicates)
                 question_ref = ""
-                if defect.question.section.ansi_reference:
-                    question_ref = f"ANSI {defect.question.section.ansi_reference}"
-                    if defect.question.ansi_reference:
-                        question_ref += f" / {defect.question.ansi_reference}"
-                elif defect.question.ansi_reference:
-                    question_ref = f"ANSI {defect.question.ansi_reference}"
+                section_ref = defect.question.section.ansi_reference
+                question_ansi = defect.question.ansi_reference
 
-                question_display = defect.question.prompt
+                if section_ref and question_ansi:
+                    # Only combine if they're different
+                    if section_ref != question_ansi:
+                        question_ref = f"ANSI A92.2 §{section_ref}/{question_ansi}"
+                    else:
+                        question_ref = f"ANSI A92.2 §{section_ref}"
+                elif section_ref:
+                    question_ref = f"ANSI A92.2 §{section_ref}"
+                elif question_ansi:
+                    question_ref = f"ANSI A92.2 §{question_ansi}"
+
+                # Display ANSI reference prominently as separate row
                 if question_ref:
-                    question_display += f"<br/><i><font size=8 color='#666'>{question_ref}</font></i>"
+                    defect_data.append(['Standard Reference:', Paragraph(f"<b>{question_ref}</b>", normal_style)])
 
-                defect_data.append(['Related Question:', Paragraph(question_display, normal_style)])
+                # Show the inspection question/requirement
+                question_display = defect.question.prompt
+                defect_data.append(['Requirement:', Paragraph(question_display, normal_style)])
 
-            # Defect note (emphasis on this)
-            defect_note_style = ParagraphStyle(
-                'DefectNote',
-                parent=normal_style,
-                fontSize=10,
-                leading=14,
-                textColor=colors.HexColor('#1a1a1a')
-            )
-            defect_data.append(['Note:', Paragraph(f"<b>{defect.note}</b>", defect_note_style)])
+                # Get the answer to show inspector's notes
+                try:
+                    answer = inspection.answers.filter(question=defect.question).first()
+                    if answer and answer.notes:
+                        inspector_note = answer.notes
+                        defect_data.append(['Inspector Notes:', Paragraph(inspector_note, normal_style)])
+                except:
+                    pass
 
-            # Create compact defect info table
-            defect_table = Table(defect_data, colWidths=[1.5*inch, 5*inch])
+            # Only show defect description if it differs from the question text (not redundant)
+            if defect.note and defect.question and defect.note != f"{defect.question.prompt[:100]} - Item does not meet ANSI A92.2 requirements":
+                # Check if it's not just a copy of the question
+                if not defect.note.startswith(defect.question.prompt[:50]):
+                    defect_note_style = ParagraphStyle(
+                        'DefectNote',
+                        parent=normal_style,
+                        fontSize=10,
+                        leading=14,
+                        textColor=colors.HexColor('#1a1a1a')
+                    )
+                    defect_data.append(['Defect Description:', Paragraph(f"<b>{defect.note}</b>", defect_note_style)])
+
+            # Create defect info table
+            defect_table = Table(defect_data, colWidths=[1.6*inch, 5.4*inch])
             defect_table.setStyle(TableStyle([
                 ('ALIGN', (0, 0), (0, -1), 'LEFT'),
                 ('ALIGN', (1, 0), (1, -1), 'LEFT'),
@@ -1067,49 +1215,68 @@ def generate_package_pdf(inspection):
                 ('RIGHTPADDING', (0, 0), (-1, -1), 8),
                 ('TOPPADDING', (0, 0), (-1, -1), 6),
                 ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-                ('LINEBELOW', (0, -1), (-1, -1), 1, colors.HexColor('#e74c3c')),
+                ('BOX', (0, 0), (-1, -1), 1, colors.HexColor('#e74c3c')),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cccccc')),
             ]))
             story.append(defect_table)
-            story.append(Spacer(1, 0.15*inch))
+            story.append(Spacer(1, 0.2*inch))
 
-            # Photos - side by side when multiple, proper sizing
+            # Photos - dynamic layout based on count, scaled to fit on one page
             photos = list(defect.photos.all())
             if photos:
-                if len(photos) == 1:
-                    # Single photo - larger, centered
+                # Photos heading
+                photo_heading_style = ParagraphStyle(
+                    'PhotoHeading',
+                    parent=normal_style,
+                    fontSize=11,
+                    fontName='Helvetica-Bold',
+                    spaceAfter=6
+                )
+                story.append(Paragraph(f"Evidence Photos ({len(photos)})", photo_heading_style))
+
+                num_photos = len(photos)
+
+                if num_photos == 1:
+                    # Single photo - large, centered
                     try:
-                        img = Image(photos[0].image.path, width=5*inch, height=3.75*inch, kind='proportional')
+                        img = Image(photos[0].image.path, width=5.5*inch, height=4.1*inch, kind='proportional')
                         story.append(img)
                         if photos[0].caption:
                             caption_style = ParagraphStyle('Caption', parent=normal_style, fontSize=9, textColor=colors.HexColor('#666'), alignment=TA_CENTER)
                             story.append(Paragraph(f"<i>{photos[0].caption}</i>", caption_style))
-                        story.append(Spacer(1, 0.1*inch))
-                    except Exception as e:
+                    except Exception:
                         story.append(Paragraph(f"[Photo could not be loaded]", normal_style))
-                else:
-                    # Multiple photos - create grid (2 per row)
+
+                elif num_photos == 2:
+                    # 2 photos - stacked vertically, larger
+                    for photo in photos:
+                        try:
+                            img = Image(photo.image.path, width=5.0*inch, height=3.75*inch, kind='proportional')
+                            story.append(img)
+                            if photo.caption:
+                                caption_style = ParagraphStyle('PhotoCaption', parent=normal_style, fontSize=9, textColor=colors.HexColor('#666'), alignment=TA_CENTER, spaceAfter=8)
+                                story.append(Paragraph(f"<i>{photo.caption}</i>", caption_style))
+                        except Exception:
+                            story.append(Paragraph(f"[Photo unavailable]", normal_style))
+                        story.append(Spacer(1, 0.15*inch))
+
+                elif num_photos in [3, 4]:
+                    # 3-4 photos - 2 per row, medium size
                     photo_table_data = []
                     photo_row = []
 
                     for photo_idx, photo in enumerate(photos):
                         try:
-                            img = Image(photo.image.path, width=3*inch, height=2.25*inch, kind='proportional')
-                            caption = ""
-                            if photo.caption:
-                                caption = f"<i><font size=8>{photo.caption}</font></i>"
-
+                            img = Image(photo.image.path, width=3.0*inch, height=2.25*inch, kind='proportional')
                             photo_cell = [img]
-                            if caption:
-                                caption_style = ParagraphStyle('PhotoCaption', parent=normal_style, fontSize=8, textColor=colors.HexColor('#666'))
-                                photo_cell.append(Paragraph(caption, caption_style))
-
+                            if photo.caption:
+                                caption_style = ParagraphStyle('PhotoCaption', parent=normal_style, fontSize=8, textColor=colors.HexColor('#666'), alignment=TA_CENTER)
+                                photo_cell.append(Paragraph(f"<i>{photo.caption}</i>", caption_style))
                             photo_row.append(photo_cell)
 
-                            # Two photos per row
                             if len(photo_row) == 2 or photo_idx == len(photos) - 1:
-                                # Pad last row if odd number of photos
                                 while len(photo_row) < 2:
-                                    photo_row.append([''])
+                                    photo_row.append([Paragraph('', normal_style)])
                                 photo_table_data.append(photo_row)
                                 photo_row = []
                         except Exception:
@@ -1118,19 +1285,53 @@ def generate_package_pdf(inspection):
                                 photo_table_data.append(photo_row)
                                 photo_row = []
 
-                    if photo_table_data:
-                        photo_table = Table(photo_table_data, colWidths=[3.25*inch, 3.25*inch])
-                        photo_table.setStyle(TableStyle([
-                            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                            ('LEFTPADDING', (0, 0), (-1, -1), 4),
-                            ('RIGHTPADDING', (0, 0), (-1, -1), 4),
-                            ('TOPPADDING', (0, 0), (-1, -1), 4),
-                            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-                        ]))
-                        story.append(photo_table)
+                    photo_table = Table(photo_table_data, colWidths=[3.5*inch, 3.5*inch])
+                    photo_table.setStyle(TableStyle([
+                        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                        ('LEFTPADDING', (0, 0), (-1, -1), 3),
+                        ('RIGHTPADDING', (0, 0), (-1, -1), 3),
+                        ('TOPPADDING', (0, 0), (-1, -1), 3),
+                        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+                    ]))
+                    story.append(photo_table)
 
-            story.append(Spacer(1, 0.25*inch))
+                else:
+                    # 5+ photos - 2 per row, smaller to fit all on page
+                    photo_table_data = []
+                    photo_row = []
+
+                    for photo_idx, photo in enumerate(photos):
+                        try:
+                            # Compact size for many photos
+                            img = Image(photo.image.path, width=2.5*inch, height=1.9*inch, kind='proportional')
+                            photo_cell = [img]
+                            if photo.caption:
+                                caption_style = ParagraphStyle('PhotoCaption', parent=normal_style, fontSize=7, textColor=colors.HexColor('#666'), alignment=TA_CENTER)
+                                photo_cell.append(Paragraph(f"<i>{photo.caption}</i>", caption_style))
+                            photo_row.append(photo_cell)
+
+                            if len(photo_row) == 2 or photo_idx == len(photos) - 1:
+                                while len(photo_row) < 2:
+                                    photo_row.append([Paragraph('', normal_style)])
+                                photo_table_data.append(photo_row)
+                                photo_row = []
+                        except Exception:
+                            photo_row.append([Paragraph("[Photo unavailable]", normal_style)])
+                            if len(photo_row) == 2:
+                                photo_table_data.append(photo_row)
+                                photo_row = []
+
+                    photo_table = Table(photo_table_data, colWidths=[3.5*inch, 3.5*inch])
+                    photo_table.setStyle(TableStyle([
+                        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                        ('LEFTPADDING', (0, 0), (-1, -1), 2),
+                        ('RIGHTPADDING', (0, 0), (-1, -1), 2),
+                        ('TOPPADDING', (0, 0), (-1, -1), 2),
+                        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+                    ]))
+                    story.append(photo_table)
 
     # Build PDF with footer on each page
     doc.build(story, onFirstPage=lambda c, d: footer_with_page_number(c, d, inspection),
@@ -1156,93 +1357,100 @@ def generate_package_pdf(inspection):
     return doc_obj
 
 
-def render_answer_table(story, answers, section, subheading_style, normal_style):
-    """Helper function to render a table of inspection answers"""
-    # Pre-check what columns we actually need
-    has_measurements = any(answer.measurement_value is not None for answer in answers)
-    has_notes = any(answer.notes and not (answer.notes.startswith('Question ') and ' - ' in answer.notes) for answer in answers)
+def render_answer_table(story, answers, section, subheading_style, normal_style, defect_mapping=None, show_header=False):
+    """Render inspection answers in ultra-compact format - NO HEADERS, minimal spacing"""
+    if not answers:
+        return
 
-    # Build table data for compact layout
-    table_data = []
-    table_styles = [
-        ('ALIGN', (0, 0), (0, -1), 'CENTER'),
-        ('ALIGN', (1, 0), (1, -1), 'LEFT'),
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('FONTSIZE', (0, 0), (-1, -1), 9),
-        ('LEFTPADDING', (0, 0), (-1, -1), 6),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 6),
-        ('TOPPADDING', (0, 0), (-1, -1), 3),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
-        ('GRID', (0, 0), (-1, -1), 0.25, colors.grey),
-    ]
+    if defect_mapping is None:
+        defect_mapping = {}
 
-    for idx, answer in enumerate(answers):
-        # Status indicator
+    # Ultra-compact row style (PASS items)
+    compact_style = ParagraphStyle(
+        'CompactRow',
+        parent=normal_style,
+        fontSize=9,
+        leftIndent=0,
+        spaceAfter=1,  # Minimal spacing between rows
+        leading=11
+    )
+
+    # Render all answers as simple rows (no table, no header)
+    for answer in answers:
         status = answer.status.upper()
-        if status == 'PASS':
-            status_display = '✓ PASS'
-            status_color = colors.HexColor('#27ae60')
-            bg_color = colors.white if idx % 2 == 0 else colors.HexColor('#f9f9f9')
-        elif status == 'FAIL':
-            status_display = '✗ FAIL'
-            status_color = colors.HexColor('#e74c3c')
-            bg_color = colors.HexColor('#ffebee')  # Light red background for failures
-            # Add bold styling to failed rows
-            table_styles.append(('BACKGROUND', (0, idx), (-1, idx), bg_color))
-            table_styles.append(('LINEABOVE', (0, idx), (-1, idx), 1.5, colors.HexColor('#e74c3c')))
-            table_styles.append(('LINEBELOW', (0, idx), (-1, idx), 1.5, colors.HexColor('#e74c3c')))
-        else:  # NA
-            status_display = '— N/A'
-            status_color = colors.HexColor('#95a5a6')
-            bg_color = colors.white if idx % 2 == 0 else colors.HexColor('#f9f9f9')
+        item_text = answer.question.prompt
 
-        # Apply background for non-failed items
-        if status != 'FAIL':
-            table_styles.append(('BACKGROUND', (0, idx), (-1, idx), bg_color))
+        # Add measurement if present
+        if answer.measurement_value is not None:
+            measurement = f"{answer.measurement_value} {answer.question.measurement_unit or ''}".strip()
+            item_text += f" <b>[{measurement}]</b>"
 
-        # Question text with ANSI reference
-        question_text = answer.question.prompt
-        if answer.question.ansi_reference:
-            question_text = f"{question_text}<br/><i><font size=7 color='#666'>ANSI {answer.question.ansi_reference}</font></i>"
+        # Build row content
+        status_text = f"<b>{status}</b>"
 
-        # Build row - only add columns that are actually used
-        row = [
-            Paragraph(f'<font color="{status_color}"><b>{status_display}</b></font>', normal_style),
-            Paragraph(question_text, normal_style)
-        ]
+        # Check if this item has notes or is failed
+        has_notes = answer.notes and answer.notes.strip() and not (answer.notes.startswith('Question ') and ' - ' in answer.notes)
+        is_failed = status == 'FAIL'
+        has_defect = answer.question.id in defect_mapping
 
-        # Only add measurement column if any answer has measurements
-        if has_measurements:
-            if answer.measurement_value is not None:
-                measurement = f"{answer.measurement_value} {answer.question.measurement_unit or ''}".strip()
-                row.append(Paragraph(f'<b>{measurement}</b>', normal_style))
-            else:
-                row.append('')
+        # FAIL items get background color and expanded format
+        if is_failed:
+            # Use table for background color
+            fail_data = [[Paragraph(status_text, compact_style), Paragraph(item_text, compact_style)]]
+            fail_table = Table(fail_data, colWidths=[0.9*inch, 6.5*inch])
+            fail_table.setStyle(TableStyle([
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#ffebee')),
+                ('LEFTPADDING', (0, 0), (-1, -1), 4),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 4),
+                ('TOPPADDING', (0, 0), (-1, -1), 2),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
+            ]))
+            story.append(fail_table)
 
-        # Only add notes column if any answer has meaningful notes
-        if has_notes:
-            if answer.notes and not (answer.notes.startswith('Question ') and ' - ' in answer.notes):
-                row.append(Paragraph(answer.notes, normal_style))
-            else:
-                row.append('')
+            # Add notes/references for failed items
+            if has_notes or has_defect:
+                # Build ANSI reference if available (avoid duplicates)
+                ansi_ref = ""
+                section_ref = answer.question.section.ansi_reference
+                question_ref = answer.question.ansi_reference
 
-        table_data.append(row)
+                if section_ref and question_ref:
+                    # Only combine if they're different
+                    if section_ref != question_ref:
+                        ansi_ref = f"ANSI A92.2 §{section_ref}/{question_ref}"
+                    else:
+                        ansi_ref = f"ANSI A92.2 §{section_ref}"
+                elif section_ref:
+                    ansi_ref = f"ANSI A92.2 §{section_ref}"
+                elif question_ref:
+                    ansi_ref = f"ANSI A92.2 §{question_ref}"
 
-    # Create table with compact layout
-    if table_data:
-        # Determine column widths based on what columns we're actually using
-        if has_measurements and has_notes:
-            col_widths = [0.7*inch, 3.5*inch, 0.9*inch, 1.4*inch]
-        elif has_measurements:
-            col_widths = [0.7*inch, 5*inch, 0.8*inch]
-        elif has_notes:
-            col_widths = [0.7*inch, 4*inch, 1.8*inch]
+                # Add defect appendix reference
+                defect_ref = ""
+                if has_defect:
+                    defect_num = defect_mapping[answer.question.id]
+                    defect_ref = f"See Appendix A-{defect_num}"
+
+                # Combine note components
+                note_parts = []
+                if has_notes:
+                    note_parts.append(f"Note: {answer.notes}")
+                if ansi_ref:
+                    note_parts.append(f"[{ansi_ref}]")
+                if defect_ref:
+                    note_parts.append(f"({defect_ref})")
+
+                full_note = " ".join(note_parts)
+                note_style = ParagraphStyle(
+                    'FailNote',
+                    parent=normal_style,
+                    fontSize=8,
+                    leftIndent=16,
+                    textColor=colors.HexColor('#555555'),
+                    spaceAfter=3
+                )
+                story.append(Paragraph(f"<i>{full_note}</i>", note_style))
         else:
-            # Just status and question - tightest layout
-            col_widths = [0.7*inch, 5.8*inch]
-
-        section_table = Table(table_data, colWidths=col_widths, repeatRows=0)
-        section_table.setStyle(TableStyle(table_styles))
-        story.append(section_table)
-
-    story.append(Spacer(1, 0.15*inch))
+            # PASS items - ultra-compact paragraph format
+            story.append(Paragraph(f"{status_text}  {item_text}", compact_style))

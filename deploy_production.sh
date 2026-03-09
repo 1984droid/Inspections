@@ -544,6 +544,11 @@ EOF
         [ -f "load_test_structural.json" ] && python manage.py import_new_template load_test_structural.json
         print_status "Templates imported"
 
+        # Populate ANSI references
+        print_info "Populating ANSI references..."
+        python populate_ansi_refs.py
+        print_status "ANSI references populated"
+
         start_service
 
     else

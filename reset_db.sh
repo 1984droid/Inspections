@@ -94,7 +94,14 @@ echo -e "${GREEN}[OK]${NC} Templates imported"
 
 echo ""
 echo "============================================================"
-echo "Step 8: Cleaning media files..."
+echo "Step 8: Populating ANSI references..."
+echo "============================================================"
+python3 populate_ansi_refs.py
+echo -e "${GREEN}[OK]${NC} ANSI references populated"
+
+echo ""
+echo "============================================================"
+echo "Step 9: Cleaning media files..."
 echo "============================================================"
 if [ -d "media/defect_photos" ]; then
     rm -f media/defect_photos/*

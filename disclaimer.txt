@@ -1,0 +1,9 @@
+Inspection Disclaimer
+
+This inspection was conducted in accordance with the applicable provisions of ANSI/SAIA A92.2 (2021). The findings contained in this report reflect the observable condition of the equipment at the time the inspection was performed.
+
+The inspection is limited to visual examination and functional testing of accessible components and systems unless otherwise specified. No dismantling, destructive testing, or internal component inspection was performed unless expressly noted in the report.
+
+Advantage Fleet LLC makes no representation or warranty regarding the future performance, reliability, or continued safe operation of the equipment. Conditions may change after the inspection due to use, environmental exposure, maintenance practices, or modification.
+
+Any equipment identified as failing inspection criteria or containing documented defects should not be returned to service until repairs have been completed and the equipment has been inspected and approved by a qualified person.

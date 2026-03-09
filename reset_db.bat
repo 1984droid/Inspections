@@ -110,6 +110,9 @@ if exist "ladders.json" (
 if exist "chassis.json" (
     .venv\Scripts\python.exe manage.py import_new_template chassis.json
 )
+if exist "load_test_structural.json" (
+    .venv\Scripts\python.exe manage.py import_new_template load_test_structural.json
+)
 echo [OK] Templates imported
 
 echo.
@@ -126,7 +129,19 @@ echo [OK] Initial data seeded
 
 echo.
 echo ============================================================
-echo Step 9: Cleaning media files...
+echo Step 9: Populating ANSI references...
+echo ============================================================
+.venv\Scripts\python.exe populate_ansi_refs.py
+if errorlevel 1 (
+    echo [ERROR] Failed to populate ANSI references
+    pause
+    exit /b 1
+)
+echo [OK] ANSI references populated
+
+echo.
+echo ============================================================
+echo Step 10: Cleaning media files...
 echo ============================================================
 if exist "media\defect_photos\*.*" (
     del /F /Q media\defect_photos\*.*
