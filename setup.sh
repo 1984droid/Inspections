@@ -104,6 +104,14 @@ python3 manage.py migrate
 echo -e "${GREEN}[OK]${NC} Migrations applied"
 echo ""
 
+# Seed initial data
+echo "============================================================"
+echo "Seeding company, inspectors, and customers..."
+echo "============================================================"
+python3 manage.py seed_initial_data
+echo -e "${GREEN}[OK]${NC} Initial data seeded"
+echo ""
+
 # Create superuser
 echo "============================================================"
 echo "Create superuser account"

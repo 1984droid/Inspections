@@ -24,18 +24,44 @@
             {{ form.location }}
         </div>
 
-        <h3 style="color: #2c3e50; margin-bottom: 15px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">Basic Equipment Information</h3>
-        <div style="margin-bottom: 20px;">
-            {{ form.serial_number.label_tag }}
-            {{ form.serial_number }}
-            {{ form.asset_tag.label_tag }}
-            {{ form.asset_tag }}
-            {{ form.make.label_tag }}
-            {{ form.make }}
-            {{ form.model.label_tag }}
-            {{ form.model }}
-            {{ form.year_of_manufacture.label_tag }}
-            {{ form.year_of_manufacture }}
+        <h3 style="color: #2c3e50; margin-bottom: 15px; border-bottom: 2px solid #e67e22; padding-bottom: 5px;">Aerial Device Information</h3>
+        <div style="margin-bottom: 25px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div>
+                    {{ form.make.label_tag }}
+                    {{ form.make }}
+                </div>
+                <div>
+                    {{ form.model.label_tag }}
+                    {{ form.model }}
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 10px;">
+                <div>
+                    {{ form.serial_number.label_tag }}
+                    {{ form.serial_number }}
+                </div>
+                <div>
+                    {{ form.unit_number.label_tag }}
+                    {{ form.unit_number }}
+                </div>
+                <div>
+                    {{ form.asset_tag.label_tag }}
+                    {{ form.asset_tag }}
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px;">
+                <div>
+                    {{ form.year_of_manufacture.label_tag }}
+                    {{ form.year_of_manufacture }}
+                </div>
+                <div>
+                    {{ form.max_working_height.label_tag }}
+                    {{ form.max_working_height }}
+                </div>
+            </div>
         </div>
 
         <h3 style="color: #2c3e50; margin-bottom: 15px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">ANSI A92.2 Identification Plate</h3>
@@ -115,16 +141,34 @@
             {{ form.installed_by }}
         </div>
 
-        <h3 style="color: #2c3e50; margin-bottom: 15px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">Vehicle Information</h3>
-        <div style="margin-bottom: 20px;">
-            {{ form.vehicle_year.label_tag }}
-            {{ form.vehicle_year }}
-            {{ form.vehicle_make.label_tag }}
-            {{ form.vehicle_make }}
-            {{ form.vehicle_model.label_tag }}
-            {{ form.vehicle_model }}
-            {{ form.vehicle_vin.label_tag }}
-            {{ form.vehicle_vin }}
+        <h3 style="color: #2c3e50; margin-bottom: 15px; border-bottom: 2px solid #9b59b6; padding-bottom: 5px;">Vehicle/Truck Information</h3>
+        <div style="margin-bottom: 25px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                <div>
+                    {{ form.vehicle_make.label_tag }}
+                    {{ form.vehicle_make }}
+                </div>
+                <div>
+                    {{ form.vehicle_model.label_tag }}
+                    {{ form.vehicle_model }}
+                </div>
+                <div>
+                    {{ form.vehicle_year.label_tag }}
+                    {{ form.vehicle_year }}
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 15px; margin-top: 10px;">
+                <div>
+                    {{ form.vehicle_vin.label_tag }}
+                    {{ form.vehicle_vin }}
+                </div>
+                <div>
+                    {{ form.vehicle_unit_number.label_tag }}
+                    {{ form.vehicle_unit_number }}
+                </div>
+            </div>
+
             {{ form.vehicle_license_plate.label_tag }}
             {{ form.vehicle_license_plate }}
         </div>

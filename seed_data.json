@@ -1,0 +1,76 @@
+{
+  "company": {
+    "name": "Advantage Fleet LLC",
+    "address_line1": "50 64th Ave S",
+    "address_line2": "Ste B",
+    "city": "Coopersville",
+    "state": "MI",
+    "zip_code": "49404",
+    "country": "USA",
+    "phone": "(616) 997-0022",
+    "email": "info@advfleet.com",
+    "website": "https://www.advfleet.com",
+    "license_number": "MI-TBD-49404",
+    "certifications": "ANSI A92.2 Certified"
+  },
+  "inspectors": [
+    {
+      "username": "nickp",
+      "password": "AdvFleet123!",
+      "first_name": "Nick",
+      "last_name": "Pyne",
+      "email": "nickp@advfleet.com",
+      "is_staff": true,
+      "phone": "(616) 555-0000",
+      "inspector_email": "nickp@advfleet.com",
+      "certification_number": "ANSI-2026-JI-49404",
+      "certifications": "ANSI A92.2 Inspector"
+    },
+    {
+      "username": "kylep",
+      "password": "AdvFleet123!",
+      "first_name": "Kyle",
+      "last_name": "Pressler",
+      "email": "kylep@advfleet.com",
+      "is_staff": true,
+      "phone": "(616) 555-0000",
+      "inspector_email": "kylep@advfleet.com",
+      "certification_number": "ANSI-2026-JI-49404",
+      "certifications": "ANSI A92.2 Inspector"
+    },
+    {
+      "username": "josh",
+      "password": "workAccount",
+      "first_name": "Josh",
+      "last_name": "Vanderlaan",
+      "email": "joshv@advfleet.com",
+      "is_staff": true,
+      "phone": "(616) 675-0752",
+      "inspector_email": "joshv@advfleet.com",
+      "certification_number": "ANSI-2024-JI-001",
+      "certifications": "ANSI A92.2 Inspector"
+    }
+  ],
+  "customers": [
+    {
+      "name": "MJ Electric",
+      "location": "",
+      "asset_id": "",
+      "address_line1": "456 Fleet Street",
+      "address_line2": "",
+      "city": "Spokane",
+      "state": "WA",
+      "zip_code": "99201",
+      "country": "USA",
+      "phone": "(509) 555-9876",
+      "phone_secondary": "(509) 555-9877",
+      "email": "fleet@mjelectric.com",
+      "email_secondary": "",
+      "website": "https://www.mjelectric.com",
+      "contact_person_name": "Ken",
+      "contact_person_title": "Manager",
+      "contact_person_phone": "(555) 555-0000",
+      "contact_person_email": "ken@mjelectric.com"
+    }
+  ]
+}

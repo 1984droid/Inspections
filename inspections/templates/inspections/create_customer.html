@@ -9,16 +9,100 @@
     <form method="post">
         {% csrf_token %}
 
-        <h3 style="color: #2c3e50; margin-bottom: 15px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">Customer Information</h3>
-        <div style="margin-bottom: 20px;">
+        <!-- Basic Information -->
+        <h3 style="color: #2c3e50; margin-bottom: 15px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">Basic Information</h3>
+        <div style="margin-bottom: 25px;">
             {{ form.name.label_tag }}
             {{ form.name }}
-            {{ form.address.label_tag }}
-            {{ form.address }}
-            {{ form.phone.label_tag }}
-            {{ form.phone }}
-            {{ form.email.label_tag }}
-            {{ form.email }}
+
+            {{ form.location.label_tag }}
+            {{ form.location }}
+
+            {{ form.asset_id.label_tag }}
+            {{ form.asset_id }}
+        </div>
+
+        <!-- Address -->
+        <h3 style="color: #2c3e50; margin-bottom: 15px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">Address</h3>
+        <div style="margin-bottom: 25px;">
+            {{ form.address_line1.label_tag }}
+            {{ form.address_line1 }}
+
+            {{ form.address_line2.label_tag }}
+            {{ form.address_line2 }}
+
+            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px;">
+                <div>
+                    {{ form.city.label_tag }}
+                    {{ form.city }}
+                </div>
+                <div>
+                    {{ form.state.label_tag }}
+                    {{ form.state }}
+                </div>
+                <div>
+                    {{ form.zip_code.label_tag }}
+                    {{ form.zip_code }}
+                </div>
+            </div>
+
+            {{ form.country.label_tag }}
+            {{ form.country }}
+        </div>
+
+        <!-- Contact Information -->
+        <h3 style="color: #2c3e50; margin-bottom: 15px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">Contact Information</h3>
+        <div style="margin-bottom: 25px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div>
+                    {{ form.phone.label_tag }}
+                    {{ form.phone }}
+                </div>
+                <div>
+                    {{ form.phone_secondary.label_tag }}
+                    {{ form.phone_secondary }}
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px;">
+                <div>
+                    {{ form.email.label_tag }}
+                    {{ form.email }}
+                </div>
+                <div>
+                    {{ form.email_secondary.label_tag }}
+                    {{ form.email_secondary }}
+                </div>
+            </div>
+
+            {{ form.website.label_tag }}
+            {{ form.website }}
+        </div>
+
+        <!-- Contact Person -->
+        <h3 style="color: #2c3e50; margin-bottom: 15px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">Primary Contact Person</h3>
+        <div style="margin-bottom: 25px;">
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 15px;">
+                <div>
+                    {{ form.contact_person_name.label_tag }}
+                    {{ form.contact_person_name }}
+                </div>
+                <div>
+                    {{ form.contact_person_title.label_tag }}
+                    {{ form.contact_person_title }}
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px;">
+                <div>
+                    {{ form.contact_person_phone.label_tag }}
+                    {{ form.contact_person_phone }}
+                </div>
+                <div>
+                    {{ form.contact_person_email.label_tag }}
+                    {{ form.contact_person_email }}
+                </div>
+            </div>
         </div>
 
         <button type="submit" class="btn">Create Customer</button>

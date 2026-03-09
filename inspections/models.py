@@ -4,12 +4,115 @@ from django.core.exceptions import ValidationError
 import uuid
 
 
+class CompanyInfo(models.Model):
+    """Company information for the inspection service provider"""
+    name = models.CharField(max_length=200, help_text="Company Name")
+
+    # Address
+    address_line1 = models.CharField(max_length=200, blank=True, null=True, help_text="Street Address")
+    address_line2 = models.CharField(max_length=200, blank=True, null=True, help_text="Suite, Unit, etc.")
+    city = models.CharField(max_length=100, blank=True, null=True)
+    state = models.CharField(max_length=50, blank=True, null=True)
+    zip_code = models.CharField(max_length=20, blank=True, null=True)
+    country = models.CharField(max_length=100, blank=True, null=True, default="USA")
+
+    # Contact
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+    website = models.URLField(blank=True, null=True)
+
+    # Certifications & License
+    license_number = models.CharField(max_length=100, blank=True, null=True, help_text="Business License Number")
+    certifications = models.TextField(blank=True, null=True, help_text="Certifications (e.g., ANSI, OSHA)")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Company Information"
+        verbose_name_plural = "Company Information"
+
+    def __str__(self):
+        return self.name
+
+    def get_full_address(self):
+        """Returns formatted full address"""
+        parts = []
+        if self.address_line1:
+            parts.append(self.address_line1)
+        if self.address_line2:
+            parts.append(self.address_line2)
+
+        city_state_zip = []
+        if self.city:
+            city_state_zip.append(self.city)
+        if self.state:
+            city_state_zip.append(self.state)
+        if self.zip_code:
+            city_state_zip.append(self.zip_code)
+
+        if city_state_zip:
+            parts.append(', '.join(city_state_zip[:2]) + (' ' + city_state_zip[2] if len(city_state_zip) > 2 else ''))
+
+        if self.country and self.country != "USA":
+            parts.append(self.country)
+
+        return '\n'.join(parts) if parts else 'N/A'
+
+
+class InspectorProfile(models.Model):
+    """Extended profile for inspectors (users)"""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='inspector_profile')
+
+    # Contact Information
+    phone = models.CharField(max_length=20, blank=True, null=True, help_text="Inspector Phone Number")
+    email = models.EmailField(blank=True, null=True, help_text="Inspector Email (if different from user email)")
+
+    # Certifications
+    certification_number = models.CharField(max_length=100, blank=True, null=True, help_text="Inspector Certification Number")
+    certifications = models.TextField(blank=True, null=True, help_text="Inspector Certifications")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.get_full_name() or self.user.username} - Inspector Profile"
+
+    def get_email(self):
+        """Returns inspector email, falling back to user email"""
+        return self.email or self.user.email
+
+
 class Customer(models.Model):
     """Customer/client information"""
     name = models.CharField(max_length=200, unique=True, db_index=True)
-    address = models.TextField(blank=True, null=True)
-    phone = models.CharField(max_length=20, blank=True, null=True)
-    email = models.EmailField(blank=True, null=True)
+    location = models.CharField(max_length=200, blank=True, null=True, help_text="Location/Yard (e.g., North Yard - Spokane)")
+
+    # Address Information
+    address_line1 = models.CharField(max_length=200, blank=True, null=True, help_text="Street Address")
+    address_line2 = models.CharField(max_length=200, blank=True, null=True, help_text="Suite, Unit, Building, Floor, etc.")
+    city = models.CharField(max_length=100, blank=True, null=True)
+    state = models.CharField(max_length=50, blank=True, null=True)
+    zip_code = models.CharField(max_length=20, blank=True, null=True)
+    country = models.CharField(max_length=100, blank=True, null=True, default="USA")
+
+    # Legacy address field (for backward compatibility)
+    address = models.TextField(blank=True, null=True, help_text="Full address (legacy field)")
+
+    # Contact Information
+    asset_id = models.CharField(max_length=100, blank=True, null=True, help_text="Customer Asset ID")
+    phone = models.CharField(max_length=20, blank=True, null=True, help_text="Primary Phone Number")
+    phone_secondary = models.CharField(max_length=20, blank=True, null=True, help_text="Secondary Phone Number")
+    email = models.EmailField(blank=True, null=True, help_text="Primary Email")
+    email_secondary = models.EmailField(blank=True, null=True, help_text="Secondary Email")
+    website = models.URLField(blank=True, null=True, help_text="Company Website")
+
+    # Contact Person
+    contact_person_name = models.CharField(max_length=200, blank=True, null=True, help_text="Primary Contact Name")
+    contact_person_title = models.CharField(max_length=100, blank=True, null=True, help_text="Primary Contact Title")
+    contact_person_phone = models.CharField(max_length=20, blank=True, null=True, help_text="Primary Contact Phone")
+    contact_person_email = models.EmailField(blank=True, null=True, help_text="Primary Contact Email")
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -19,14 +122,40 @@ class Customer(models.Model):
     def __str__(self):
         return self.name
 
+    def get_full_address(self):
+        """Returns formatted full address"""
+        parts = []
+        if self.address_line1:
+            parts.append(self.address_line1)
+        if self.address_line2:
+            parts.append(self.address_line2)
+
+        city_state_zip = []
+        if self.city:
+            city_state_zip.append(self.city)
+        if self.state:
+            city_state_zip.append(self.state)
+        if self.zip_code:
+            city_state_zip.append(self.zip_code)
+
+        if city_state_zip:
+            parts.append(', '.join(city_state_zip[:2]) + (' ' + city_state_zip[2] if len(city_state_zip) > 2 else ''))
+
+        if self.country and self.country != "USA":
+            parts.append(self.country)
+
+        return '\n'.join(parts) if parts else (self.address or 'N/A')
+
 
 class Equipment(models.Model):
     """Equipment being inspected (MEWP units)"""
     # Basic Equipment Info
-    serial_number = models.CharField(max_length=100, unique=True, db_index=True)
+    serial_number = models.CharField(max_length=100, unique=True, db_index=True, help_text="Aerial Device Serial Number")
     asset_tag = models.CharField(max_length=100, blank=True, null=True)
-    make = models.CharField(max_length=100, blank=True, null=True, help_text="Make of aerial device")
-    model = models.CharField(max_length=100, blank=True, null=True, help_text="Model of aerial device")
+    unit_number = models.CharField(max_length=100, blank=True, null=True, help_text="Aerial Device Unit Number")
+    make = models.CharField(max_length=100, blank=True, null=True, help_text="Aerial Device Manufacturer")
+    model = models.CharField(max_length=100, blank=True, null=True, help_text="Aerial Device Model")
+    max_working_height = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True, help_text="Maximum Working Height (ft)")
 
     # ANSI A92.2 Identification Plate Data (Figure 7)
     year_of_manufacture = models.CharField(max_length=4, blank=True, null=True)
@@ -78,12 +207,13 @@ class Equipment(models.Model):
     manufacturer_country = models.CharField(max_length=100, blank=True, null=True)
     installed_by = models.CharField(max_length=200, blank=True, null=True)
 
-    # Vehicle Info
-    vehicle_year = models.CharField(max_length=4, blank=True, null=True)
-    vehicle_make = models.CharField(max_length=100, blank=True, null=True)
-    vehicle_model = models.CharField(max_length=100, blank=True, null=True)
-    vehicle_vin = models.CharField(max_length=17, blank=True, null=True)
-    vehicle_license_plate = models.CharField(max_length=20, blank=True, null=True)
+    # Vehicle/Truck Info (Chassis)
+    vehicle_year = models.CharField(max_length=4, blank=True, null=True, help_text="Truck Year")
+    vehicle_make = models.CharField(max_length=100, blank=True, null=True, help_text="Truck Make")
+    vehicle_model = models.CharField(max_length=100, blank=True, null=True, help_text="Truck Model")
+    vehicle_vin = models.CharField(max_length=17, blank=True, null=True, help_text="Truck VIN")
+    vehicle_unit_number = models.CharField(max_length=100, blank=True, null=True, help_text="Truck Unit Number")
+    vehicle_license_plate = models.CharField(max_length=20, blank=True, null=True, help_text="License Plate")
 
     # Customer relationship
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT, related_name='equipment', null=True, blank=True)
@@ -129,6 +259,7 @@ class SectionTemplate(models.Model):
     order = models.IntegerField(default=0)
     section_id = models.CharField(max_length=100)
     title = models.CharField(max_length=200)
+    ansi_reference = models.CharField(max_length=50, blank=True, null=True, help_text="ANSI section reference (e.g., 5.2)")
 
     class Meta:
         ordering = ['template', 'order']
@@ -152,6 +283,7 @@ class QuestionTemplate(models.Model):
     required = models.BooleanField(default=True)
     question_type = models.CharField(max_length=20, choices=QUESTION_TYPE_CHOICES, default='pass_fail')
     measurement_unit = models.CharField(max_length=20, blank=True, null=True, help_text="Unit for measurement (e.g., kV, mA, lbs)")
+    ansi_reference = models.CharField(max_length=50, blank=True, null=True, help_text="ANSI section reference (e.g., 5.2.1.a)")
 
     class Meta:
         ordering = ['section', 'order']
@@ -211,6 +343,7 @@ class InspectionTestModule(models.Model):
     inspection = models.ForeignKey(Inspection, on_delete=models.CASCADE, related_name='test_modules')
     template = models.ForeignKey(Template, on_delete=models.PROTECT)
     order = models.IntegerField(default=0)
+    test_data = models.JSONField(default=dict, blank=True, help_text="Stores test-specific data like voltage, duration, etc.")
 
     created_at = models.DateTimeField(auto_now_add=True)
 

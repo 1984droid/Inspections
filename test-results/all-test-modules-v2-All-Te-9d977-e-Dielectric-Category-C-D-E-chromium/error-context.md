@@ -1,0 +1,795 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - heading "A92.2 Inspection App" [level=1] [ref=e4]
+      - list [ref=e5]:
+        - listitem [ref=e6]:
+          - link "Dashboard" [ref=e7] [cursor=pointer]:
+            - /url: /
+        - listitem [ref=e8]:
+          - link "New Inspection" [ref=e9] [cursor=pointer]:
+            - /url: /inspections/new/
+        - listitem [ref=e10]:
+          - link "Search" [ref=e11] [cursor=pointer]:
+            - /url: /inspections/
+        - listitem [ref=e12]:
+          - button "Logout (josh)" [ref=e14] [cursor=pointer]
+  - generic [ref=e15]:
+    - generic [ref=e17]: "Inspection #3 created with 1 test module(s)."
+    - 'heading "Inspection #3" [level=1] [ref=e18]'
+    - group [ref=e19]:
+      - generic "Inspection Information" [ref=e20] [cursor=pointer]
+      - generic [ref=e21]:
+        - table [ref=e22]:
+          - rowgroup [ref=e23]:
+            - 'row "Equipment: SN1773059360941 (Terex Test)" [ref=e24]':
+              - rowheader "Equipment:" [ref=e25]
+              - cell "SN1773059360941 (Terex Test)" [ref=e26]
+            - 'row "Template: ANSI A92.2 (2021) Periodic Inspection" [ref=e27]':
+              - rowheader "Template:" [ref=e28]
+              - cell "ANSI A92.2 (2021) Periodic Inspection" [ref=e29]
+            - 'row "Type: Periodic" [ref=e30]':
+              - rowheader "Type:" [ref=e31]
+              - cell "Periodic" [ref=e32]
+            - 'row "Inspector: Josh Vanderlaan" [ref=e33]':
+              - rowheader "Inspector:" [ref=e34]
+              - cell "Josh Vanderlaan" [ref=e35]
+            - 'row "Status: Draft" [ref=e36]':
+              - rowheader "Status:" [ref=e37]
+              - cell "Draft" [ref=e38]:
+                - strong [ref=e39]: Draft
+            - 'row "Result: —" [ref=e40]':
+              - rowheader "Result:" [ref=e41]
+              - cell "—" [ref=e42]:
+                - strong [ref=e43]: —
+            - 'row "Started: 2026-03-09 12:29" [ref=e44]':
+              - rowheader "Started:" [ref=e45]
+              - cell "2026-03-09 12:29" [ref=e46]
+            - 'row "Completed: —" [ref=e47]':
+              - rowheader "Completed:" [ref=e48]
+              - cell "—" [ref=e49]
+            - 'row "Certificate: —" [ref=e50]':
+              - rowheader "Certificate:" [ref=e51]
+              - cell "—" [ref=e52]
+        - link "Complete Inspection" [ref=e53] [cursor=pointer]:
+          - /url: /inspections/3/complete/
+    - generic [ref=e55]:
+      - generic [ref=e56]: 0/52
+      - generic [ref=e58]: 0%
+      - generic [ref=e59]:
+        - generic [ref=e60]: ✓ 0
+        - generic [ref=e61]: ✗ 0
+        - generic [ref=e62]: — 0
+    - group [ref=e64]:
+      - generic "Frequent Inspection 0/20" [ref=e65] [cursor=pointer]:
+        - generic [ref=e66]: Frequent Inspection
+        - generic [ref=e68]: 0/20
+      - generic [ref=e69]:
+        - group [ref=e70]:
+          - generic "Frequent Inspection - Visual Walkaround 0/2" [ref=e71] [cursor=pointer]:
+            - generic [ref=e72]: Frequent Inspection - Visual Walkaround
+            - generic [ref=e74]: 0/2
+          - generic [ref=e75]:
+            - generic [ref=e77]:
+              - generic [ref=e78]:
+                - generic [ref=e79]: "1"
+                - generic [ref=e80]: Machine inspected for damaged components, cracks, corrosion, excessive wear, and loose/missing fasteners. *
+              - generic [ref=e81]:
+                - generic [ref=e82] [cursor=pointer]: Pass
+                - generic [ref=e83] [cursor=pointer]: Fail
+                - generic [ref=e84] [cursor=pointer]: N/A
+              - generic [ref=e85]:
+                - generic [ref=e86]: "Inspector Notes (optional):"
+                - textbox "Additional notes..." [ref=e87]
+              - button "Save Answer" [ref=e88] [cursor=pointer]
+            - generic [ref=e90]:
+              - generic [ref=e91]:
+                - generic [ref=e92]: "2"
+                - generic [ref=e93]: Pins, bolts, fasteners, locking devices, and covers present and properly secured. *
+              - generic [ref=e94]:
+                - generic [ref=e95] [cursor=pointer]: Pass
+                - generic [ref=e96] [cursor=pointer]: Fail
+                - generic [ref=e97] [cursor=pointer]: N/A
+              - generic [ref=e98]:
+                - generic [ref=e99]: "Inspector Notes (optional):"
+                - textbox "Additional notes..." [ref=e100]
+              - button "Save Answer" [ref=e101] [cursor=pointer]
+        - group [ref=e102]:
+          - generic "Frequent Inspection - Controls and Interlocks 0/4" [ref=e103] [cursor=pointer]:
+            - generic [ref=e104]: Frequent Inspection - Controls and Interlocks
+            - generic [ref=e106]: 0/4
+          - generic [ref=e107]:
+            - generic [ref=e109]:
+              - generic [ref=e110]:
+                - generic [ref=e111]: "1"
+                - generic [ref=e112]: All controls operate properly. *
+              - generic [ref=e113]:
+                - generic [ref=e114] [cursor=pointer]: Pass
+                - generic [ref=e115] [cursor=pointer]: Fail
+                - generic [ref=e116] [cursor=pointer]: N/A
+              - generic [ref=e117]:
+                - generic [ref=e118]: "Inspector Notes (optional):"
+                - textbox "Additional notes..." [ref=e119]
+              - button "Save Answer" [ref=e120] [cursor=pointer]
+            - generic [ref=e122]:
+              - generic [ref=e123]:
+                - generic [ref=e124]: "2"
+                - generic [ref=e125]: Interlocks function correctly. *
+              - generic [ref=e126]:
+                - generic [ref=e127] [cursor=pointer]: Pass
+                - generic [ref=e128] [cursor=pointer]: Fail
+                - generic [ref=e129] [cursor=pointer]: N/A
+              - generic [ref=e130]:
+                - generic [ref=e131]: "Inspector Notes (optional):"
+                - textbox "Additional notes..." [ref=e132]
+              - button "Save Answer" [ref=e133] [cursor=pointer]
+            - generic [ref=e135]:
+              - generic [ref=e136]:
+                - generic [ref=e137]: "3"
+                - generic [ref=e138]: Controls return to neutral when released. *
+              - generic [ref=e139]:
+                - generic [ref=e140] [cursor=pointer]: Pass
+                - generic [ref=e141] [cursor=pointer]: Fail
+                - generic [ref=e142] [cursor=pointer]: N/A
+              - generic [ref=e143]:
+                - generic [ref=e144]: "Inspector Notes (optional):"
+                - textbox "Additional notes..." [ref=e145]
+              - button "Save Answer" [ref=e146] [cursor=pointer]
+            - generic [ref=e148]:
+              - generic [ref=e149]:
+                - generic [ref=e150]: "4"
+                - generic [ref=e151]: Control functions are clearly marked. *
+              - generic [ref=e152]:
+                - generic [ref=e153] [cursor=pointer]: Pass
+                - generic [ref=e154] [cursor=pointer]: Fail
+                - generic [ref=e155] [cursor=pointer]: N/A
+              - generic [ref=e156]:
+                - generic [ref=e157]: "Inspector Notes (optional):"
+                - textbox "Additional notes..." [ref=e158]
+              - button "Save Answer" [ref=e159] [cursor=pointer]
+        - group [ref=e160]:
+          - generic "Frequent Inspection - Safety Devices 0/2" [ref=e161] [cursor=pointer]:
+            - generic [ref=e162]: Frequent Inspection - Safety Devices
+            - generic [ref=e164]: 0/2
+          - generic [ref=e165]:
+            - generic [ref=e167]:
+              - generic [ref=e168]:
+                - generic [ref=e169]: "1"
+                - generic [ref=e170]: Visual safety devices operate properly. *
+              - generic [ref=e171]:
+                - generic [ref=e172] [cursor=pointer]: Pass
+                - generic [ref=e173] [cursor=pointer]: Fail
+                - generic [ref=e174] [cursor=pointer]: N/A
+              - generic [ref=e175]:
+                - generic [ref=e176]: "Inspector Notes (optional):"
+                - textbox "Additional notes..." [ref=e177]
+              - button "Save Answer" [ref=e178] [cursor=pointer]
+            - generic [ref=e180]:
+              - generic [ref=e181]:
+                - generic [ref=e182]: "2"
+                - generic [ref=e183]: Audible safety devices operate properly. *
+              - generic [ref=e184]:
+                - generic [ref=e185] [cursor=pointer]: Pass
+                - generic [ref=e186] [cursor=pointer]: Fail
+                - generic [ref=e187] [cursor=pointer]: N/A
+              - generic [ref=e188]:
+                - generic [ref=e189]: "Inspector Notes (optional):"
+                - textbox "Additional notes..." [ref=e190]
+              - button "Save Answer" [ref=e191] [cursor=pointer]
+        - group [ref=e192]:
+          - generic "Frequent Inspection - Insulating Components 0/2" [ref=e193] [cursor=pointer]:
+            - generic [ref=e194]: Frequent Inspection - Insulating Components
+            - generic [ref=e196]: 0/2
+          - generic [ref=e197]:
+            - generic [ref=e199]:
+              - generic [ref=e200]:
+                - generic [ref=e201]: "1"
+                - generic [ref=e202]: Fiberglass and insulating components free of visible damage. *
+              - generic [ref=e203]:
+                - generic [ref=e204] [cursor=pointer]: Pass
+                - generic [ref=e205] [cursor=pointer]: Fail
+                - generic [ref=e206] [cursor=pointer]: N/A
+              - generic [ref=e207]:
+                - generic [ref=e208]: "Inspector Notes (optional):"
+                - textbox "Additional notes..." [ref=e209]
+              - button "Save Answer" [ref=e210] [cursor=pointer]
+            - generic [ref=e212]:
+              - generic [ref=e213]:
+                - generic [ref=e214]: "2"
+                - generic [ref=e215]: Insulating components clean and free of contamination. *
+              - generic [ref=e216]:
+                - generic [ref=e217] [cursor=pointer]: Pass
+                - generic [ref=e218] [cursor=pointer]: Fail
+                - generic [ref=e219] [cursor=pointer]: N/A
+              - generic [ref=e220]:
+                - generic [ref=e221]: "Inspector Notes (optional):"
+                - textbox "Additional notes..." [ref=e222]
+              - button "Save Answer" [ref=e223] [cursor=pointer]
+        - group [ref=e224]:
+          - generic "Frequent Inspection - Markings and Decals 0/1" [ref=e225] [cursor=pointer]:
+            - generic [ref=e226]: Frequent Inspection - Markings and Decals
+            - generic [ref=e228]: 0/1
+          - generic [ref=e231]:
+            - generic [ref=e232]:
+              - generic [ref=e233]: "1"
+              - generic [ref=e234]: Operational and instructional markings present and legible. *
+            - generic [ref=e235]:
+              - generic [ref=e236] [cursor=pointer]: Pass
+              - generic [ref=e237] [cursor=pointer]: Fail
+              - generic [ref=e238] [cursor=pointer]: N/A
+            - generic [ref=e239]:
+              - generic [ref=e240]: "Inspector Notes (optional):"
+              - textbox "Additional notes..." [ref=e241]
+            - button "Save Answer" [ref=e242] [cursor=pointer]
+        - group [ref=e243]:
+          - generic "Frequent Inspection - Hydraulic and Pneumatic Systems 0/2" [ref=e244] [cursor=pointer]:
+            - generic [ref=e245]: Frequent Inspection - Hydraulic and Pneumatic Systems
+            - generic [ref=e247]: 0/2
+          - generic [ref=e248]:
+            - generic [ref=e250]:
+              - generic [ref=e251]:
+                - generic [ref=e252]: "1"
+                - generic [ref=e253]: Hydraulic and pneumatic systems show no excessive leakage. *
+              - generic [ref=e254]:
+                - generic [ref=e255] [cursor=pointer]: Pass
+                - generic [ref=e256] [cursor=pointer]: Fail
+                - generic [ref=e257] [cursor=pointer]: N/A
+              - generic [ref=e258]:
+                - generic [ref=e259]: "Inspector Notes (optional):"
+                - textbox "Additional notes..." [ref=e260]
+              - button "Save Answer" [ref=e261] [cursor=pointer]
+            - generic [ref=e263]:
+              - generic [ref=e264]:
+                - generic [ref=e265]: "2"
+                - generic [ref=e266]: Hydraulic and pneumatic components show no visible deterioration. *
+              - generic [ref=e267]:
+                - generic [ref=e268] [cursor=pointer]: Pass
+                - generic [ref=e269] [cursor=pointer]: Fail
+                - generic [ref=e270] [cursor=pointer]: N/A
+              - generic [ref=e271]:
+                - generic [ref=e272]: "Inspector Notes (optional):"
+                - textbox "Additional notes..." [ref=e273]
+              - button "Save Answer" [ref=e274] [cursor=pointer]
+        - group [ref=e275]:
+          - generic "Frequent Inspection - Electrical Systems 0/2" [ref=e276] [cursor=pointer]:
+            - generic [ref=e277]: Frequent Inspection - Electrical Systems
+            - generic [ref=e279]: 0/2
+          - generic [ref=e280]:
+            - generic [ref=e282]:
+              - generic [ref=e283]:
+                - generic [ref=e284]: "1"
+                - generic [ref=e285]: Electrical systems related to the aerial device function properly. *
+              - generic [ref=e286]:
+                - generic [ref=e287] [cursor=pointer]: Pass
+                - generic [ref=e288] [cursor=pointer]: Fail
+                - generic [ref=e289] [cursor=pointer]: N/A
+              - generic [ref=e290]:
+                - generic [ref=e291]: "Inspector Notes (optional):"
+                - textbox "Additional notes..." [ref=e292]
+              - button "Save Answer" [ref=e293] [cursor=pointer]
+            - generic [ref=e295]:
+              - generic [ref=e296]:
+                - generic [ref=e297]: "2"
+                - generic [ref=e298]: Electrical components show no deterioration, dirt accumulation, or moisture. *
+              - generic [ref=e299]:
+                - generic [ref=e300] [cursor=pointer]: Pass
+                - generic [ref=e301] [cursor=pointer]: Fail
+                - generic [ref=e302] [cursor=pointer]: N/A
+              - generic [ref=e303]:
+                - generic [ref=e304]: "Inspector Notes (optional):"
+                - textbox "Additional notes..." [ref=e305]
+              - button "Save Answer" [ref=e306] [cursor=pointer]
+        - group [ref=e307]:
+          - generic "Frequent Inspection - Functional Tests 0/3" [ref=e308] [cursor=pointer]:
+            - generic [ref=e309]: Frequent Inspection - Functional Tests
+            - generic [ref=e311]: 0/3
+          - generic [ref=e312]:
+            - generic [ref=e314]:
+              - generic [ref=e315]:
+                - generic [ref=e316]: "1"
+                - generic [ref=e317]: Stabilizers deploy and operate correctly. *
+              - generic [ref=e318]:
+                - generic [ref=e319] [cursor=pointer]: Pass
+                - generic [ref=e320] [cursor=pointer]: Fail
+                - generic [ref=e321] [cursor=pointer]: N/A
+              - generic [ref=e322]:
+                - generic [ref=e323]: "Inspector Notes (optional):"
+                - textbox "Additional notes..." [ref=e324]
+              - button "Save Answer" [ref=e325] [cursor=pointer]
+            - generic [ref=e327]:
+              - generic [ref=e328]:
+                - generic [ref=e329]: "2"
+                - generic [ref=e330]: Boom and aerial device functions operate through full range of motion from lower controls. *
+              - generic [ref=e331]:
+                - generic [ref=e332] [cursor=pointer]: Pass
+                - generic [ref=e333] [cursor=pointer]: Fail
+                - generic [ref=e334] [cursor=pointer]: N/A
+              - generic [ref=e335]:
+                - generic [ref=e336]: "Inspector Notes (optional):"
+                - textbox "Additional notes..." [ref=e337]
+              - button "Save Answer" [ref=e338] [cursor=pointer]
+            - generic [ref=e340]:
+              - generic [ref=e341]:
+                - generic [ref=e342]: "3"
+                - generic [ref=e343]: Emergency stop functions operate correctly. *
+              - generic [ref=e344]:
+                - generic [ref=e345] [cursor=pointer]: Pass
+                - generic [ref=e346] [cursor=pointer]: Fail
+                - generic [ref=e347] [cursor=pointer]: N/A
+              - generic [ref=e348]:
+                - generic [ref=e349]: "Inspector Notes (optional):"
+                - textbox "Additional notes..." [ref=e350]
+              - button "Save Answer" [ref=e351] [cursor=pointer]
+        - group [ref=e352]:
+          - generic "Frequent Inspection - Placards and Test Expiration 0/2" [ref=e353] [cursor=pointer]:
+            - generic [ref=e354]: Frequent Inspection - Placards and Test Expiration
+            - generic [ref=e356]: 0/2
+          - generic [ref=e357]:
+            - generic [ref=e359]:
+              - generic [ref=e360]:
+                - generic [ref=e361]: "1"
+                - generic [ref=e362]: Periodic inspection placard is current. *
+              - generic [ref=e363]:
+                - generic [ref=e364] [cursor=pointer]: Pass
+                - generic [ref=e365] [cursor=pointer]: Fail
+                - generic [ref=e366] [cursor=pointer]: N/A
+              - generic [ref=e367]:
+                - generic [ref=e368]: "Inspector Notes (optional):"
+                - textbox "Additional notes..." [ref=e369]
+              - button "Save Answer" [ref=e370] [cursor=pointer]
+            - generic [ref=e372]:
+              - generic [ref=e373]:
+                - generic [ref=e374]: "2"
+                - generic [ref=e375]: Electrical test placard is current. *
+              - generic [ref=e376]:
+                - generic [ref=e377] [cursor=pointer]: Pass
+                - generic [ref=e378] [cursor=pointer]: Fail
+                - generic [ref=e379] [cursor=pointer]: N/A
+              - generic [ref=e380]:
+                - generic [ref=e381]: "Inspector Notes (optional):"
+                - textbox "Additional notes..." [ref=e382]
+              - button "Save Answer" [ref=e383] [cursor=pointer]
+    - group [ref=e385]:
+      - generic "Periodic Inspection 0/24" [ref=e386] [cursor=pointer]:
+        - generic [ref=e387]: Periodic Inspection
+        - generic [ref=e389]: 0/24
+      - generic [ref=e390]:
+        - group [ref=e391]:
+          - generic "Periodic Inspection - Structural Components 0/1" [ref=e392] [cursor=pointer]:
+            - generic [ref=e393]: Periodic Inspection - Structural Components
+            - generic [ref=e395]: 0/1
+          - generic [ref=e398]:
+            - generic [ref=e399]:
+              - generic [ref=e400]: "1"
+              - generic [ref=e401]: Structural members free of deformation, cracks, or corrosion. *
+            - generic [ref=e402]:
+              - generic [ref=e403] [cursor=pointer]: Pass
+              - generic [ref=e404] [cursor=pointer]: Fail
+              - generic [ref=e405] [cursor=pointer]: N/A
+            - generic [ref=e406]:
+              - generic [ref=e407]: "Inspector Notes (optional):"
+              - textbox "Additional notes..." [ref=e408]
+            - button "Save Answer" [ref=e409] [cursor=pointer]
+        - group [ref=e410]:
+          - generic "Periodic Inspection - Wear Components 0/2" [ref=e411] [cursor=pointer]:
+            - generic [ref=e412]: Periodic Inspection - Wear Components
+            - generic [ref=e414]: 0/2
+          - generic [ref=e415]:
+            - generic [ref=e417]:
+              - generic [ref=e418]:
+                - generic [ref=e419]: "1"
+                - generic [ref=e420]: Pins, bearings, shafts, gears, rollers, and locking devices free of excessive wear or distortion. *
+              - generic [ref=e421]:
+                - generic [ref=e422] [cursor=pointer]: Pass
+                - generic [ref=e423] [cursor=pointer]: Fail
+                - generic [ref=e424] [cursor=pointer]: N/A
+              - generic [ref=e425]:
+                - generic [ref=e426]: "Inspector Notes (optional):"
+                - textbox "Additional notes..." [ref=e427]
+              - button "Save Answer" [ref=e428] [cursor=pointer]
+            - generic [ref=e430]:
+              - generic [ref=e431]:
+                - generic [ref=e432]: "2"
+                - generic [ref=e433]: Chains, sprockets, wire ropes, synthetic ropes, and sheaves free of wear, cracks, or distortion. *
+              - generic [ref=e434]:
+                - generic [ref=e435] [cursor=pointer]: Pass
+                - generic [ref=e436] [cursor=pointer]: Fail
+                - generic [ref=e437] [cursor=pointer]: N/A
+              - generic [ref=e438]:
+                - generic [ref=e439]: "Inspector Notes (optional):"
+                - textbox "Additional notes..." [ref=e440]
+              - button "Save Answer" [ref=e441] [cursor=pointer]
+        - group [ref=e442]:
+          - generic "Periodic Inspection - Hydraulic System Settings 0/2" [ref=e443] [cursor=pointer]:
+            - generic [ref=e444]: Periodic Inspection - Hydraulic System Settings
+            - generic [ref=e446]: 0/2
+          - generic [ref=e447]:
+            - generic [ref=e449]:
+              - generic [ref=e450]:
+                - generic [ref=e451]: "1"
+                - generic [ref=e452]: Hydraulic and pneumatic relief valves set correctly. *
+              - generic [ref=e453]:
+                - generic [ref=e454] [cursor=pointer]: Pass
+                - generic [ref=e455] [cursor=pointer]: Fail
+                - generic [ref=e456] [cursor=pointer]: N/A
+              - generic [ref=e457]:
+                - generic [ref=e458]: "Inspector Notes (optional):"
+                - textbox "Additional notes..." [ref=e459]
+              - button "Save Answer" [ref=e460] [cursor=pointer]
+            - generic [ref=e462]:
+              - generic [ref=e463]:
+                - generic [ref=e464]: "2"
+                - generic [ref=e465]: Hydraulic system oil level correct. *
+              - generic [ref=e466]:
+                - generic [ref=e467] [cursor=pointer]: Pass
+                - generic [ref=e468] [cursor=pointer]: Fail
+                - generic [ref=e469] [cursor=pointer]: N/A
+              - generic [ref=e470]:
+                - generic [ref=e471]: "Inspector Notes (optional):"
+                - textbox "Additional notes..." [ref=e472]
+              - button "Save Answer" [ref=e473] [cursor=pointer]
+        - group [ref=e474]:
+          - generic "Periodic Inspection - Hoses and Fittings 0/2" [ref=e475] [cursor=pointer]:
+            - generic [ref=e476]: Periodic Inspection - Hoses and Fittings
+            - generic [ref=e478]: 0/2
+          - generic [ref=e479]:
+            - generic [ref=e481]:
+              - generic [ref=e482]:
+                - generic [ref=e483]: "1"
+                - generic [ref=e484]: Hydraulic and pneumatic hoses and fittings free of leaks. *
+              - generic [ref=e485]:
+                - generic [ref=e486] [cursor=pointer]: Pass
+                - generic [ref=e487] [cursor=pointer]: Fail
+                - generic [ref=e488] [cursor=pointer]: N/A
+              - generic [ref=e489]:
+                - generic [ref=e490]: "Inspector Notes (optional):"
+                - textbox "Additional notes..." [ref=e491]
+              - button "Save Answer" [ref=e492] [cursor=pointer]
+            - generic [ref=e494]:
+              - generic [ref=e495]:
+                - generic [ref=e496]: "2"
+                - generic [ref=e497]: Hoses and fittings show no abnormal deformation or excessive abrasion. *
+              - generic [ref=e498]:
+                - generic [ref=e499] [cursor=pointer]: Pass
+                - generic [ref=e500] [cursor=pointer]: Fail
+                - generic [ref=e501] [cursor=pointer]: N/A
+              - generic [ref=e502]:
+                - generic [ref=e503]: "Inspector Notes (optional):"
+                - textbox "Additional notes..." [ref=e504]
+              - button "Save Answer" [ref=e505] [cursor=pointer]
+        - group [ref=e506]:
+          - generic "Periodic Inspection - Pumps, Motors, and Generators 0/2" [ref=e507] [cursor=pointer]:
+            - generic [ref=e508]: Periodic Inspection - Pumps, Motors, and Generators
+            - generic [ref=e510]: 0/2
+          - generic [ref=e511]:
+            - generic [ref=e513]:
+              - generic [ref=e514]:
+                - generic [ref=e515]: "1"
+                - generic [ref=e516]: Compressors, pumps, motors, and generators secure and free of leaks. *
+              - generic [ref=e517]:
+                - generic [ref=e518] [cursor=pointer]: Pass
+                - generic [ref=e519] [cursor=pointer]: Fail
+                - generic [ref=e520] [cursor=pointer]: N/A
+              - generic [ref=e521]:
+                - generic [ref=e522]: "Inspector Notes (optional):"
+                - textbox "Additional notes..." [ref=e523]
+              - button "Save Answer" [ref=e524] [cursor=pointer]
+            - generic [ref=e526]:
+              - generic [ref=e527]:
+                - generic [ref=e528]: "2"
+                - generic [ref=e529]: No unusual noises, vibration, overheating, or loss of operating speed. *
+              - generic [ref=e530]:
+                - generic [ref=e531] [cursor=pointer]: Pass
+                - generic [ref=e532] [cursor=pointer]: Fail
+                - generic [ref=e533] [cursor=pointer]: N/A
+              - generic [ref=e534]:
+                - generic [ref=e535]: "Inspector Notes (optional):"
+                - textbox "Additional notes..." [ref=e536]
+              - button "Save Answer" [ref=e537] [cursor=pointer]
+        - group [ref=e538]:
+          - generic "Periodic Inspection - Hydraulic and Pneumatic Valves 0/3" [ref=e539] [cursor=pointer]:
+            - generic [ref=e540]: Periodic Inspection - Hydraulic and Pneumatic Valves
+            - generic [ref=e542]: 0/3
+          - generic [ref=e543]:
+            - generic [ref=e545]:
+              - generic [ref=e546]:
+                - generic [ref=e547]: "1"
+                - generic [ref=e548]: Hydraulic and pneumatic valves operate correctly. *
+              - generic [ref=e549]:
+                - generic [ref=e550] [cursor=pointer]: Pass
+                - generic [ref=e551] [cursor=pointer]: Fail
+                - generic [ref=e552] [cursor=pointer]: N/A
+              - generic [ref=e553]:
+                - generic [ref=e554]: "Inspector Notes (optional):"
+                - textbox "Additional notes..." [ref=e555]
+              - button "Save Answer" [ref=e556] [cursor=pointer]
+            - generic [ref=e558]:
+              - generic [ref=e559]:
+                - generic [ref=e560]: "2"
+                - generic [ref=e561]: Valve housings free of cracks and leaks. *
+              - generic [ref=e562]:
+                - generic [ref=e563] [cursor=pointer]: Pass
+                - generic [ref=e564] [cursor=pointer]: Fail
+                - generic [ref=e565] [cursor=pointer]: N/A
+              - generic [ref=e566]:
+                - generic [ref=e567]: "Inspector Notes (optional):"
+                - textbox "Additional notes..." [ref=e568]
+              - button "Save Answer" [ref=e569] [cursor=pointer]
+            - generic [ref=e571]:
+              - generic [ref=e572]:
+                - generic [ref=e573]: "3"
+                - generic [ref=e574]: Valve spools operate freely and are not sticking. *
+              - generic [ref=e575]:
+                - generic [ref=e576] [cursor=pointer]: Pass
+                - generic [ref=e577] [cursor=pointer]: Fail
+                - generic [ref=e578] [cursor=pointer]: N/A
+              - generic [ref=e579]:
+                - generic [ref=e580]: "Inspector Notes (optional):"
+                - textbox "Additional notes..." [ref=e581]
+              - button "Save Answer" [ref=e582] [cursor=pointer]
+        - group [ref=e583]:
+          - generic "Periodic Inspection - Vacuum Limiting Systems 0/1" [ref=e584] [cursor=pointer]:
+            - generic [ref=e585]: Periodic Inspection - Vacuum Limiting Systems
+            - generic [ref=e587]: 0/1
+          - generic [ref=e590]:
+            - generic [ref=e591]:
+              - generic [ref=e592]: "1"
+              - generic [ref=e593]: Vacuum limiting system visually inspected and functioning per manufacturer instructions. *
+            - generic [ref=e594]:
+              - generic [ref=e595] [cursor=pointer]: Pass
+              - generic [ref=e596] [cursor=pointer]: Fail
+              - generic [ref=e597] [cursor=pointer]: N/A
+            - generic [ref=e598]:
+              - generic [ref=e599]: "Inspector Notes (optional):"
+              - textbox "Additional notes..." [ref=e600]
+            - button "Save Answer" [ref=e601] [cursor=pointer]
+        - group [ref=e602]:
+          - generic "Periodic Inspection - Cylinders and Holding Valves 0/2" [ref=e603] [cursor=pointer]:
+            - generic [ref=e604]: Periodic Inspection - Cylinders and Holding Valves
+            - generic [ref=e606]: 0/2
+          - generic [ref=e607]:
+            - generic [ref=e609]:
+              - generic [ref=e610]:
+                - generic [ref=e611]: "1"
+                - generic [ref=e612]: Hydraulic and pneumatic cylinders operate correctly and show no visible damage. *
+              - generic [ref=e613]:
+                - generic [ref=e614] [cursor=pointer]: Pass
+                - generic [ref=e615] [cursor=pointer]: Fail
+                - generic [ref=e616] [cursor=pointer]: N/A
+              - generic [ref=e617]:
+                - generic [ref=e618]: "Inspector Notes (optional):"
+                - textbox "Additional notes..." [ref=e619]
+              - button "Save Answer" [ref=e620] [cursor=pointer]
+            - generic [ref=e622]:
+              - generic [ref=e623]:
+                - generic [ref=e624]: "2"
+                - generic [ref=e625]: Holding valves operate correctly. *
+              - generic [ref=e626]:
+                - generic [ref=e627] [cursor=pointer]: Pass
+                - generic [ref=e628] [cursor=pointer]: Fail
+                - generic [ref=e629] [cursor=pointer]: N/A
+              - generic [ref=e630]:
+                - generic [ref=e631]: "Inspector Notes (optional):"
+                - textbox "Additional notes..." [ref=e632]
+              - button "Save Answer" [ref=e633] [cursor=pointer]
+        - group [ref=e634]:
+          - generic "Periodic Inspection - Hydraulic and Pneumatic Filters 0/2" [ref=e635] [cursor=pointer]:
+            - generic [ref=e636]: Periodic Inspection - Hydraulic and Pneumatic Filters
+            - generic [ref=e638]: 0/2
+          - generic [ref=e639]:
+            - generic [ref=e641]:
+              - generic [ref=e642]:
+                - generic [ref=e643]: "1"
+                - generic [ref=e644]: Filters clean and free of contamination. *
+              - generic [ref=e645]:
+                - generic [ref=e646] [cursor=pointer]: Pass
+                - generic [ref=e647] [cursor=pointer]: Fail
+                - generic [ref=e648] [cursor=pointer]: N/A
+              - generic [ref=e649]:
+                - generic [ref=e650]: "Inspector Notes (optional):"
+                - textbox "Additional notes..." [ref=e651]
+              - button "Save Answer" [ref=e652] [cursor=pointer]
+            - generic [ref=e654]:
+              - generic [ref=e655]:
+                - generic [ref=e656]: "2"
+                - generic [ref=e657]: No foreign material present in the system indicating component deterioration. *
+              - generic [ref=e658]:
+                - generic [ref=e659] [cursor=pointer]: Pass
+                - generic [ref=e660] [cursor=pointer]: Fail
+                - generic [ref=e661] [cursor=pointer]: N/A
+              - generic [ref=e662]:
+                - generic [ref=e663]: "Inspector Notes (optional):"
+                - textbox "Additional notes..." [ref=e664]
+              - button "Save Answer" [ref=e665] [cursor=pointer]
+        - group [ref=e666]:
+          - generic "Periodic Inspection - Electrical Components 0/1" [ref=e667] [cursor=pointer]:
+            - generic [ref=e668]: Periodic Inspection - Electrical Components
+            - generic [ref=e670]: 0/1
+          - generic [ref=e673]:
+            - generic [ref=e674]:
+              - generic [ref=e675]: "1"
+              - generic [ref=e676]: Electrical systems and components free of deterioration or excessive wear. *
+            - generic [ref=e677]:
+              - generic [ref=e678] [cursor=pointer]: Pass
+              - generic [ref=e679] [cursor=pointer]: Fail
+              - generic [ref=e680] [cursor=pointer]: N/A
+            - generic [ref=e681]:
+              - generic [ref=e682]: "Inspector Notes (optional):"
+              - textbox "Additional notes..." [ref=e683]
+            - button "Save Answer" [ref=e684] [cursor=pointer]
+        - group [ref=e685]:
+          - generic "Periodic Inspection - Boom Performance 0/1" [ref=e686] [cursor=pointer]:
+            - generic [ref=e687]: Periodic Inspection - Boom Performance
+            - generic [ref=e689]: 0/1
+          - generic [ref=e692]:
+            - generic [ref=e693]:
+              - generic [ref=e694]: "1"
+              - generic [ref=e695]: All boom movements operate correctly and smoothly. *
+            - generic [ref=e696]:
+              - generic [ref=e697] [cursor=pointer]: Pass
+              - generic [ref=e698] [cursor=pointer]: Fail
+              - generic [ref=e699] [cursor=pointer]: N/A
+            - generic [ref=e700]:
+              - generic [ref=e701]: "Inspector Notes (optional):"
+              - textbox "Additional notes..." [ref=e702]
+            - button "Save Answer" [ref=e703] [cursor=pointer]
+        - group [ref=e704]:
+          - generic "Periodic Inspection - Fasteners 0/1" [ref=e705] [cursor=pointer]:
+            - generic [ref=e706]: Periodic Inspection - Fasteners
+            - generic [ref=e708]: 0/1
+          - generic [ref=e711]:
+            - generic [ref=e712]:
+              - generic [ref=e713]: "1"
+              - generic [ref=e714]: Bolts and fasteners tight and secure according to manufacturer recommendations. *
+            - generic [ref=e715]:
+              - generic [ref=e716] [cursor=pointer]: Pass
+              - generic [ref=e717] [cursor=pointer]: Fail
+              - generic [ref=e718] [cursor=pointer]: N/A
+            - generic [ref=e719]:
+              - generic [ref=e720]: "Inspector Notes (optional):"
+              - textbox "Additional notes..." [ref=e721]
+            - button "Save Answer" [ref=e722] [cursor=pointer]
+        - group [ref=e723]:
+          - generic "Periodic Inspection - Welds 0/1" [ref=e724] [cursor=pointer]:
+            - generic [ref=e725]: Periodic Inspection - Welds
+            - generic [ref=e727]: 0/1
+          - generic [ref=e730]:
+            - generic [ref=e731]:
+              - generic [ref=e732]: "1"
+              - generic [ref=e733]: Welds inspected and free of cracks or defects. *
+            - generic [ref=e734]:
+              - generic [ref=e735] [cursor=pointer]: Pass
+              - generic [ref=e736] [cursor=pointer]: Fail
+              - generic [ref=e737] [cursor=pointer]: N/A
+            - generic [ref=e738]:
+              - generic [ref=e739]: "Inspector Notes (optional):"
+              - textbox "Additional notes..." [ref=e740]
+            - button "Save Answer" [ref=e741] [cursor=pointer]
+        - group [ref=e742]:
+          - generic "Periodic Inspection - Identification and Markings 0/1" [ref=e743] [cursor=pointer]:
+            - generic [ref=e744]: Periodic Inspection - Identification and Markings
+            - generic [ref=e746]: 0/1
+          - generic [ref=e749]:
+            - generic [ref=e750]:
+              - generic [ref=e751]: "1"
+              - generic [ref=e752]: All identification, operational, and instructional markings present and legible. *
+            - generic [ref=e753]:
+              - generic [ref=e754] [cursor=pointer]: Pass
+              - generic [ref=e755] [cursor=pointer]: Fail
+              - generic [ref=e756] [cursor=pointer]: N/A
+            - generic [ref=e757]:
+              - generic [ref=e758]: "Inspector Notes (optional):"
+              - textbox "Additional notes..." [ref=e759]
+            - button "Save Answer" [ref=e760] [cursor=pointer]
+        - group [ref=e761]:
+          - generic "Periodic Inspection - Insulating System Condition 0/1" [ref=e762] [cursor=pointer]:
+            - generic [ref=e763]: Periodic Inspection - Insulating System Condition
+            - generic [ref=e765]: 0/1
+          - generic [ref=e768]:
+            - generic [ref=e769]:
+              - generic [ref=e770]: "1"
+              - generic [ref=e771]: Insulating components clean and free of conditions that could compromise insulation. *
+            - generic [ref=e772]:
+              - generic [ref=e773] [cursor=pointer]: Pass
+              - generic [ref=e774] [cursor=pointer]: Fail
+              - generic [ref=e775] [cursor=pointer]: N/A
+            - generic [ref=e776]:
+              - generic [ref=e777]: "Inspector Notes (optional):"
+              - textbox "Additional notes..." [ref=e778]
+            - button "Save Answer" [ref=e779] [cursor=pointer]
+        - group [ref=e780]:
+          - generic "Periodic Inspection - High Resistance Upper Controls 0/1" [ref=e781] [cursor=pointer]:
+            - generic [ref=e782]: Periodic Inspection - High Resistance Upper Controls
+            - generic [ref=e784]: 0/1
+          - generic [ref=e787]:
+            - generic [ref=e788]:
+              - generic [ref=e789]: "1"
+              - generic [ref=e790]: Upper controls high-resistance components maintained per manufacturer requirements. *
+            - generic [ref=e791]:
+              - generic [ref=e792] [cursor=pointer]: Pass
+              - generic [ref=e793] [cursor=pointer]: Fail
+              - generic [ref=e794] [cursor=pointer]: N/A
+            - generic [ref=e795]:
+              - generic [ref=e796]: "Inspector Notes (optional):"
+              - textbox "Additional notes..." [ref=e797]
+            - button "Save Answer" [ref=e798] [cursor=pointer]
+    - generic [ref=e799]:
+      - heading "Dielectric Test Modules" [level=2] [ref=e800]
+      - group [ref=e802]:
+        - generic "ANSI A92.2 (2021) Dielectric Test - Category C/D/E 0/8" [ref=e803] [cursor=pointer]:
+          - generic [ref=e804]: ANSI A92.2 (2021) Dielectric Test - Category C/D/E
+          - generic [ref=e806]: 0/8
+        - generic [ref=e807]:
+          - group [ref=e808]:
+            - generic "Setup" [ref=e809] [cursor=pointer]:
+              - generic [ref=e810]: Setup
+          - group [ref=e811]:
+            - generic "General" [active] [ref=e812] [cursor=pointer]:
+              - generic [ref=e813]: General
+            - generic [ref=e814]:
+              - generic [ref=e815]:
+                - heading "Test Configuration and Method" [level=4] [ref=e816]
+                - generic [ref=e818]:
+                  - generic [ref=e819]:
+                    - generic [ref=e820]: "1"
+                    - generic [ref=e821]: Test method selected and performed (AC/DC Table 2 insulated-from-ground / alternate DC grounded method / energized AC line contact Table 3). *
+                  - generic [ref=e822]:
+                    - generic [ref=e823] [cursor=pointer]: Pass
+                    - generic [ref=e824] [cursor=pointer]: Fail
+                    - generic [ref=e825] [cursor=pointer]: N/A
+                  - generic [ref=e826]:
+                    - generic [ref=e827]: "Inspector Notes (optional):"
+                    - textbox "Additional notes..." [ref=e828]
+                  - button "Save Answer" [ref=e829] [cursor=pointer]
+              - generic [ref=e830]:
+                - heading "Recorded Results" [level=4] [ref=e831]
+                - generic [ref=e833]:
+                  - generic [ref=e834]:
+                    - generic [ref=e835]: "1"
+                    - generic [ref=e836]: Test voltage (kV) *
+                  - generic [ref=e837]:
+                    - generic [ref=e838]: "Measurement Value (kV):"
+                    - spinbutton [ref=e839]
+                  - generic [ref=e840]:
+                    - generic [ref=e841] [cursor=pointer]: Pass
+                    - generic [ref=e842] [cursor=pointer]: Fail
+                    - generic [ref=e843] [cursor=pointer]: N/A
+                  - generic [ref=e844]:
+                    - generic [ref=e845]: "Inspector Notes (optional):"
+                    - textbox "Additional notes..." [ref=e846]
+                  - button "Save Answer" [ref=e847] [cursor=pointer]
+                - generic [ref=e849]:
+                  - generic [ref=e850]:
+                    - generic [ref=e851]: "2"
+                    - generic [ref=e852]: Final leakage current (mA) *
+                  - generic [ref=e853]:
+                    - generic [ref=e854]: "Measurement Value (mA):"
+                    - spinbutton [ref=e855]
+                  - generic [ref=e856]:
+                    - generic [ref=e857] [cursor=pointer]: Pass
+                    - generic [ref=e858] [cursor=pointer]: Fail
+                    - generic [ref=e859] [cursor=pointer]: N/A
+                  - generic [ref=e860]:
+                    - generic [ref=e861]: "Inspector Notes (optional):"
+                    - textbox "Additional notes..." [ref=e862]
+                  - button "Save Answer" [ref=e863] [cursor=pointer]
+                - generic [ref=e865]:
+                  - generic [ref=e866]:
+                    - generic [ref=e867]: "3"
+                    - generic [ref=e868]: Did equipment pass dielectric test? *
+                  - generic [ref=e869]:
+                    - generic [ref=e870] [cursor=pointer]: Pass
+                    - generic [ref=e871] [cursor=pointer]: Fail
+                    - generic [ref=e872] [cursor=pointer]: N/A
+                  - generic [ref=e873]:
+                    - generic [ref=e874]: "Inspector Notes (optional):"
+                    - textbox "Additional notes..." [ref=e875]
+                  - button "Save Answer" [ref=e876] [cursor=pointer]
+    - link "Add Defect" [ref=e878] [cursor=pointer]:
+      - /url: /inspections/3/defect/add/
+    - link "Back to Dashboard" [ref=e879] [cursor=pointer]:
+      - /url: /
+```

@@ -1,0 +1,9 @@
+Created company: Advantage Fleet LLC
+Created user: nickp
+Created inspector profile: Nick Pyne
+Created user: kylep
+Created inspector profile: Kyle Pressler
+Updated password for user: josh
+Created inspector profile: Josh Vanderlaan
+Created customer: MJ Electric
+Successfully seeded initial data!

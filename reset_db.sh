@@ -66,14 +66,21 @@ python3 manage.py migrate
 
 echo ""
 echo "============================================================"
-echo "Step 5: Creating superuser..."
+echo "Step 5: Seeding company, inspectors, and customers..."
+echo "============================================================"
+python3 manage.py seed_initial_data
+echo -e "${GREEN}[OK]${NC} Initial data seeded"
+
+echo ""
+echo "============================================================"
+echo "Step 6: Creating superuser..."
 echo "============================================================"
 echo "Please enter superuser credentials:"
 python3 manage.py createsuperuser
 
 echo ""
 echo "============================================================"
-echo "Step 6: Importing templates..."
+echo "Step 7: Importing templates..."
 echo "============================================================"
 [ -f "periodic_a922.json" ] && python3 manage.py import_new_template periodic_a922.json
 [ -f "cat_ab.json" ] && python3 manage.py import_new_template cat_ab.json
@@ -87,7 +94,7 @@ echo -e "${GREEN}[OK]${NC} Templates imported"
 
 echo ""
 echo "============================================================"
-echo "Step 7: Cleaning media files..."
+echo "Step 8: Cleaning media files..."
 echo "============================================================"
 if [ -d "media/defect_photos" ]; then
     rm -f media/defect_photos/*

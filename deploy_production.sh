@@ -258,30 +258,15 @@ setup_database() {
     python manage.py migrate
     print_status "Migrations completed"
 
+    # Seed company, inspectors, and customers
+    print_info "Seeding company, inspectors, and customers..."
+    python manage.py seed_initial_data --force-passwords
+    print_status "Initial data seeded"
+
     # Collect static files for Django admin
     print_info "Collecting static files..."
     python manage.py collectstatic --noinput
     print_status "Static files collected"
-
-    # Always ensure default admin user exists (fresh install or update)
-    echo ""
-    print_info "Ensuring default admin user exists..."
-
-    # Default credentials
-    DEFAULT_ADMIN_USERNAME="joshv"
-    DEFAULT_ADMIN_EMAIL="joshv@advfleet.com"
-    DEFAULT_ADMIN_PASSWORD="workAccount90!"
-
-    # Create or ensure default user exists
-    python manage.py shell <<EOF
-from django.contrib.auth.models import User
-if not User.objects.filter(username='$DEFAULT_ADMIN_USERNAME').exists():
-    User.objects.create_superuser('$DEFAULT_ADMIN_USERNAME', '$DEFAULT_ADMIN_EMAIL', '$DEFAULT_ADMIN_PASSWORD')
-    print('Default admin user created: $DEFAULT_ADMIN_USERNAME')
-else:
-    print('Default admin user already exists: $DEFAULT_ADMIN_USERNAME')
-EOF
-    print_status "Default admin user configured"
 
     if ! $UPDATE_MODE; then
         # Import templates (only on fresh install, updates handle this separately)
@@ -480,6 +465,12 @@ EOF
 
         setup_python_env
         setup_database
+
+        # Seed company, inspectors, and customers (update mode)
+        print_info "Updating company, inspectors, and customers..."
+        source .venv/bin/activate
+        python manage.py seed_initial_data --force-passwords
+        print_status "Initial data updated"
 
         # Import templates
         print_info "Importing/updating inspection templates..."

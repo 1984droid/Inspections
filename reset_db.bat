@@ -24,7 +24,19 @@ if not "%confirm%"=="YES" (
 
 echo.
 echo ============================================================
-echo Step 1: Deleting database file...
+echo Step 1: Installing dependencies...
+echo ============================================================
+.venv\Scripts\pip.exe install -r requirements.txt
+if errorlevel 1 (
+    echo [ERROR] Failed to install dependencies
+    pause
+    exit /b 1
+)
+echo [OK] Dependencies installed
+
+echo.
+echo ============================================================
+echo Step 2: Deleting database file...
 echo ============================================================
 if exist "db.sqlite3" (
     del /F /Q db.sqlite3
@@ -35,7 +47,7 @@ if exist "db.sqlite3" (
 
 echo.
 echo ============================================================
-echo Step 2: Removing migration files...
+echo Step 3: Removing migration files...
 echo ============================================================
 if exist "inspections\migrations\0*.py" (
     del /F /Q inspections\migrations\0*.py
@@ -46,9 +58,9 @@ if exist "inspections\migrations\0*.py" (
 
 echo.
 echo ============================================================
-echo Step 3: Creating fresh migrations...
+echo Step 4: Creating fresh migrations...
 echo ============================================================
-python manage.py makemigrations
+.venv\Scripts\python.exe manage.py makemigrations
 if errorlevel 1 (
     echo [ERROR] Failed to create migrations
     pause
@@ -57,9 +69,9 @@ if errorlevel 1 (
 
 echo.
 echo ============================================================
-echo Step 4: Applying migrations...
+echo Step 5: Applying migrations...
 echo ============================================================
-python manage.py migrate
+.venv\Scripts\python.exe manage.py migrate
 if errorlevel 1 (
     echo [ERROR] Failed to apply migrations
     pause
@@ -68,41 +80,53 @@ if errorlevel 1 (
 
 echo.
 echo ============================================================
-echo Step 5: Creating superuser...
+echo Step 6: Creating superuser...
 echo ============================================================
 echo Please enter superuser credentials:
-python manage.py createsuperuser
+.venv\Scripts\python.exe manage.py createsuperuser
 
 echo.
 echo ============================================================
-echo Step 6: Importing templates...
+echo Step 7: Importing templates...
 echo ============================================================
 if exist "periodic_a922.json" (
-    python manage.py import_new_template periodic_a922.json
+    .venv\Scripts\python.exe manage.py import_new_template periodic_a922.json
 )
 if exist "cat_ab.json" (
-    python manage.py import_new_template cat_ab.json
+    .venv\Scripts\python.exe manage.py import_new_template cat_ab.json
 )
 if exist "cat_cde.json" (
-    python manage.py import_new_template cat_cde.json
+    .venv\Scripts\python.exe manage.py import_new_template cat_cde.json
 )
 if exist "uppercontrools.json" (
-    python manage.py import_new_template uppercontrools.json
+    .venv\Scripts\python.exe manage.py import_new_template uppercontrools.json
 )
 if exist "liners.json" (
-    python manage.py import_new_template liners.json
+    .venv\Scripts\python.exe manage.py import_new_template liners.json
 )
 if exist "ladders.json" (
-    python manage.py import_new_template ladders.json
+    .venv\Scripts\python.exe manage.py import_new_template ladders.json
 )
 if exist "chassis.json" (
-    python manage.py import_new_template chassis.json
+    .venv\Scripts\python.exe manage.py import_new_template chassis.json
 )
 echo [OK] Templates imported
 
 echo.
 echo ============================================================
-echo Step 7: Cleaning media files...
+echo Step 8: Seeding initial data...
+echo ============================================================
+.venv\Scripts\python.exe manage.py seed_initial_data
+if errorlevel 1 (
+    echo [ERROR] Failed to seed initial data
+    pause
+    exit /b 1
+)
+echo [OK] Initial data seeded
+
+echo.
+echo ============================================================
+echo Step 9: Cleaning media files...
 echo ============================================================
 if exist "media\defect_photos\*.*" (
     del /F /Q media\defect_photos\*.*
@@ -118,7 +142,9 @@ echo ============================================================
 echo                DATABASE RESET COMPLETE!
 echo ============================================================
 echo.
-echo The database has been reset to a clean state.
+echo The database has been reset with:
+echo   - Templates loaded
+echo   - Seed data (users, customer, company info)
 echo.
 echo To start the server, run:
 echo     run.bat

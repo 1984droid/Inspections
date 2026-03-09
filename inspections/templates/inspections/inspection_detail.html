@@ -6,24 +6,28 @@
 {% block content %}
 <h1>Inspection #{{ inspection.id }}</h1>
 
-<div class="card">
-    <h2>Inspection Information</h2>
-    <table style="width: auto;">
-        <tr><th>Equipment:</th><td>{{ inspection.equipment.serial_number }} ({{ inspection.equipment.make }} {{ inspection.equipment.model }})</td></tr>
-        <tr><th>Template:</th><td>{{ inspection.template.name }}</td></tr>
-        <tr><th>Type:</th><td>{{ inspection.template.get_kind_display }}</td></tr>
-        <tr><th>Inspector:</th><td>{{ inspection.inspector.get_full_name|default:inspection.inspector.username }}</td></tr>
-        <tr><th>Status:</th><td><strong>{{ inspection.get_status_display }}</strong></td></tr>
-        <tr><th>Result:</th><td><strong>{{ inspection.get_overall_result_display|default:"—" }}</strong></td></tr>
-        <tr><th>Started:</th><td>{{ inspection.started_at|date:"Y-m-d H:i" }}</td></tr>
-        <tr><th>Completed:</th><td>{{ inspection.completed_at|date:"Y-m-d H:i"|default:"—" }}</td></tr>
-        <tr><th>Certificate:</th><td>{{ inspection.certificate_number|default:"—" }}</td></tr>
-    </table>
+<details class="card" style="border: 2px solid #3498db; padding: 0; border-radius: 8px;">
+    <summary style="background: #3498db; color: white; padding: 15px 20px; cursor: pointer; font-weight: bold; font-size: 18px; border-radius: 6px;">
+        Inspection Information
+    </summary>
+    <div style="padding: 20px;">
+        <table style="width: auto;">
+            <tr><th>Equipment:</th><td>{{ inspection.equipment.serial_number }} ({{ inspection.equipment.make }} {{ inspection.equipment.model }})</td></tr>
+            <tr><th>Template:</th><td>{{ inspection.template.name }}</td></tr>
+            <tr><th>Type:</th><td>{{ inspection.template.get_kind_display }}</td></tr>
+            <tr><th>Inspector:</th><td>{{ inspection.inspector.get_full_name|default:inspection.inspector.username }}</td></tr>
+            <tr><th>Status:</th><td><strong>{{ inspection.get_status_display }}</strong></td></tr>
+            <tr><th>Result:</th><td><strong>{{ inspection.get_overall_result_display|default:"—" }}</strong></td></tr>
+            <tr><th>Started:</th><td>{{ inspection.started_at|date:"Y-m-d H:i" }}</td></tr>
+            <tr><th>Completed:</th><td>{{ inspection.completed_at|date:"Y-m-d H:i"|default:"—" }}</td></tr>
+            <tr><th>Certificate:</th><td>{{ inspection.certificate_number|default:"—" }}</td></tr>
+        </table>
 
-    {% if can_edit %}
-    <a href="{% url 'complete_inspection' inspection.id %}" class="btn" style="margin-top: 15px;">Complete Inspection</a>
-    {% endif %}
-</div>
+        {% if can_edit %}
+        <a href="{% url 'complete_inspection' inspection.id %}" class="btn" style="margin-top: 15px;">Complete Inspection</a>
+        {% endif %}
+    </div>
+</details>
 
 <!-- Compact Progress Bar (Sticky) -->
 <div id="progress-sticky" style="position: sticky; top: 0; z-index: 100; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 10px 15px; margin: -20px -20px 20px -20px;">
@@ -63,7 +67,7 @@
 
         <div style="padding: 20px; background: #f8f9fa;">
             {% for section in sections %}
-            <details style="border-left: 4px solid #3498db; padding: 0; margin-bottom: 20px; border-radius: 5px; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+            <details style="border-left: 4px solid #3498db; padding: 0; margin-bottom: 20px; border-radius: 5px; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.08);" data-section-id="{{ section.id }}" open>
                 <summary style="background: #ecf0f1; padding: 14px 18px; cursor: pointer; font-weight: bold; color: #2c3e50; border-radius: 5px; font-size: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
                     <span style="flex: 1;">{{ section.title|slice:"0:100" }}</span>
                     <div style="display: flex; gap: 8px; align-items: center; font-size: 13px;">
@@ -174,6 +178,61 @@
             </summary>
 
             <div style="padding: 20px; background: #f0f8ff;">
+                <!-- Test Module Data Fields -->
+                {% if test_module.field_defs and can_edit %}
+                <div style="background: white; border: 2px solid #3498db; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+                    <h3 style="color: #3498db; margin-top: 0; margin-bottom: 20px; border-bottom: 2px solid #3498db; padding-bottom: 10px;">Test Data & Measurements</h3>
+                    <form method="post" action="{% url 'save_test_module_data' inspection.id test_module.id %}" style="margin: 0;">
+                        {% csrf_token %}
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                            {% for field in test_module.field_defs %}
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #2c3e50;">
+                                    {{ field.label }}{% if field.required %} <span style="color: #e74c3c;">*</span>{% endif %}:
+                                </label>
+
+                                {% if field.type == 'choice' %}
+                                    <select name="{{ field.code }}" class="form-control" {% if field.required %}required{% endif %}>
+                                        <option value="">-- Select --</option>
+                                        {% for option in field.options %}
+                                        <option value="{{ option }}" {% if test_module.test_data|get_item:field.code == option %}selected{% endif %}>{{ option }}</option>
+                                        {% endfor %}
+                                    </select>
+                                {% elif field.type == 'number' %}
+                                    <input type="number" step="0.001" name="{{ field.code }}" class="form-control" placeholder="{% if field.unit_hint %}{{ field.unit_hint }}{% endif %}" value="{{ test_module.test_data|get_item:field.code|default:'' }}" {% if field.required %}required{% endif %}>
+                                    {% if field.unit_hint %}<small style="color: #7f8c8d; margin-top: 5px; display: block;">Unit: {{ field.unit_hint }}</small>{% endif %}
+                                {% elif field.type == 'date' %}
+                                    <input type="date" name="{{ field.code }}" class="form-control" value="{{ test_module.test_data|get_item:field.code|default:'' }}" {% if field.required %}required{% endif %}>
+                                {% elif field.type == 'passfail' %}
+                                    <select name="{{ field.code }}" class="form-control" {% if field.required %}required{% endif %}>
+                                        <option value="">-- Select --</option>
+                                        <option value="pass" {% if test_module.test_data|get_item:field.code == 'pass' %}selected{% endif %}>Pass</option>
+                                        <option value="fail" {% if test_module.test_data|get_item:field.code == 'fail' %}selected{% endif %}>Fail</option>
+                                    </select>
+                                {% else %}
+                                    <input type="text" name="{{ field.code }}" class="form-control" placeholder="{{ field.label }}" value="{{ test_module.test_data|get_item:field.code|default:'' }}" {% if field.required %}required{% endif %}>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <button type="submit" class="btn" style="margin-top: 20px; background: #3498db;">Save Test Data</button>
+                    </form>
+                </div>
+                {% elif test_module.field_defs %}
+                <!-- Read-only view of test data -->
+                <div style="background: white; border: 2px solid #3498db; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+                    <h3 style="color: #3498db; margin-top: 0; margin-bottom: 20px; border-bottom: 2px solid #3498db; padding-bottom: 10px;">Test Data & Measurements</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">
+                        {% for field in test_module.field_defs %}
+                        <div>
+                            <strong style="color: #2c3e50;">{{ field.label }}:</strong>
+                            <span style="margin-left: 10px;">{{ test_module.test_data|get_item:field.code|default:"—" }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
                 {% for category, sections in test_module.grouped_sections.items %}
                 <details style="border-left: 4px solid #3498db; padding: 0; margin-bottom: 20px; border-radius: 5px; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
                     <summary style="background: #d6eaf8; padding: 14px 18px; cursor: pointer; font-weight: bold; color: #2c3e50; border-radius: 5px; font-size: 16px; display: flex; justify-content: space-between; align-items: center;">
@@ -206,13 +265,13 @@
                             {% endif %}
 
                             <div class="status-chips">
-                                <input type="radio" name="status" value="pass" id="pass-test-{{ question.id }}" class="status-chip status-pass" data-question-id="{{ question.id }}" required>
+                                <input type="radio" name="status" value="pass" id="pass-test-{{ question.id }}" class="status-chip status-pass" data-question-id="{{ question.id }}" data-section-id="{{ section.id }}" required>
                                 <label for="pass-test-{{ question.id }}" class="status-chip-label">Pass</label>
 
-                                <input type="radio" name="status" value="fail" id="fail-test-{{ question.id }}" class="status-chip status-fail" data-question-id="{{ question.id }}" required>
+                                <input type="radio" name="status" value="fail" id="fail-test-{{ question.id }}" class="status-chip status-fail" data-question-id="{{ question.id }}" data-section-id="{{ section.id }}" required>
                                 <label for="fail-test-{{ question.id }}" class="status-chip-label">Fail</label>
 
-                                <input type="radio" name="status" value="na" id="na-test-{{ question.id }}" class="status-chip status-na" data-question-id="{{ question.id }}" required>
+                                <input type="radio" name="status" value="na" id="na-test-{{ question.id }}" class="status-chip status-na" data-question-id="{{ question.id }}" data-section-id="{{ section.id }}" required>
                                 <label for="na-test-{{ question.id }}" class="status-chip-label">N/A</label>
                             </div>
 
@@ -380,6 +439,53 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Function to check if all questions in a section are answered
+    function checkSectionComplete(sectionId) {
+        const sectionElement = document.querySelector('details[data-section-id="' + sectionId + '"]');
+        if (!sectionElement) return;
+
+        const questions = sectionElement.querySelectorAll('.question-item');
+        let allAnswered = true;
+
+        questions.forEach(function(q) {
+            const qId = q.getAttribute('data-question-id');
+            if (!answersData[qId]) {
+                allAnswered = false;
+            }
+        });
+
+        // Auto-collapse section if all questions are answered
+        if (allAnswered && questions.length > 0) {
+            setTimeout(function() {
+                sectionElement.open = false;
+            }, 500);
+        }
+    }
+
+    // Function to scroll to next unanswered question
+    function scrollToNextQuestion(currentQuestionItem) {
+        const allQuestions = Array.from(document.querySelectorAll('.question-item'));
+        const currentIndex = allQuestions.indexOf(currentQuestionItem);
+
+        // Find next unanswered question
+        for (let i = currentIndex + 1; i < allQuestions.length; i++) {
+            const nextQuestion = allQuestions[i];
+            const nextQuestionId = nextQuestion.getAttribute('data-question-id');
+
+            if (!answersData[nextQuestionId]) {
+                // Found an unanswered question, scroll to it
+                nextQuestion.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+        }
+
+        // If no next question found, scroll to complete button
+        const completeBtn = document.querySelector('a[href*="complete_inspection"]');
+        if (completeBtn) {
+            completeBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+
     // Show/hide defect form when "Fail" is selected
     document.querySelectorAll('.status-chip').forEach(function(radio) {
         radio.addEventListener('change', function() {
@@ -387,6 +493,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const defectForm = questionItem.querySelector('.defect-form');
             const form = this.closest('form');
             const submitBtn = form.querySelector('.submit-answer-btn');
+            const sectionId = this.getAttribute('data-section-id');
 
             if (this.value === 'fail' && this.checked) {
                 defectForm.classList.add('active');
@@ -400,6 +507,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Auto-submit for Pass/N/A after short delay
                 if (this.value === 'pass' || this.value === 'na') {
+                    // Scroll to next question immediately on Pass
+                    if (this.value === 'pass') {
+                        scrollToNextQuestion(questionItem);
+                    }
+
                     setTimeout(function() {
                         form.submit();
                     }, 300);
@@ -408,6 +520,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Mark question as answered when any status is selected
             questionItem.classList.add('answered');
+
+            // Check if section is complete
+            if (sectionId) {
+                checkSectionComplete(sectionId);
+            }
         });
     });
 

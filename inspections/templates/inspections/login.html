@@ -5,16 +5,24 @@
 {% block content %}
 <div class="card" style="max-width: 500px; margin: 50px auto;">
     <h2>Login</h2>
+
+    {% if form.errors %}
+        <div style="color: red; margin-bottom: 15px;">
+            <p>Invalid username or password. Please try again.</p>
+        </div>
+    {% endif %}
+
     <form method="post">
         {% csrf_token %}
         <div>
             <label>Username:</label>
-            <input type="text" name="username" class="form-control" required>
+            <input type="text" name="username" class="form-control" required value="{{ form.username.value|default:'' }}">
         </div>
         <div>
             <label>Password:</label>
             <input type="password" name="password" class="form-control" required>
         </div>
+        <input type="hidden" name="next" value="{{ next }}">
         <button type="submit" class="btn">Login</button>
     </form>
 </div>

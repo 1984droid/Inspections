@@ -199,9 +199,22 @@ def inspection_detail(request, inspection_id):
                 grouped_test_sections[category] = []
             grouped_test_sections[category].append(section)
 
+        # Parse template definition to get field definitions
+        import json
+        field_defs = []
+        if hasattr(test_module.template, 'definition') and test_module.template.definition:
+            try:
+                template_def = json.loads(test_module.template.definition) if isinstance(test_module.template.definition, str) else test_module.template.definition
+                field_defs = template_def.get('fields', [])
+            except (json.JSONDecodeError, AttributeError):
+                pass
+
         test_modules.append({
+            'id': test_module.id,
             'name': test_module.template.name,
-            'grouped_sections': grouped_test_sections
+            'grouped_sections': grouped_test_sections,
+            'field_defs': field_defs,
+            'test_data': test_module.test_data or {}
         })
 
     # Get existing answers
@@ -272,6 +285,7 @@ def inspection_detail(request, inspection_id):
         'category_stats': category_stats,
         'test_module_stats': test_module_stats,
     }
+    print(f"[DEBUG] Inspection {inspection.id}: can_edit={can_edit}, sections={len(grouped_sections)}, test_modules={len(test_modules)}")
     return render(request, 'inspections/inspection_detail.html', context)
 
 
@@ -466,6 +480,33 @@ def complete_inspection(request, inspection_id):
         'inspection': inspection,
     }
     return render(request, 'inspections/complete_inspection.html', context)
+
+
+@login_required
+def save_test_module_data(request, inspection_id, test_module_id):
+    """Save test module metadata (voltage, duration, etc.)"""
+    if request.method != 'POST':
+        return redirect('inspection_detail', inspection_id=inspection_id)
+
+    inspection = get_object_or_404(Inspection, id=inspection_id)
+    test_module = get_object_or_404(InspectionTestModule, id=test_module_id, inspection=inspection)
+
+    # Check permissions
+    if not inspection.is_editable() or inspection.inspector != request.user:
+        messages.error(request, 'Cannot edit this inspection.')
+        return redirect('inspection_detail', inspection_id=inspection_id)
+
+    # Extract all form data and save to test_data JSON field
+    test_data = {}
+    for key, value in request.POST.items():
+        if key not in ['csrfmiddlewaretoken']:
+            test_data[key] = value
+
+    test_module.test_data = test_data
+    test_module.save()
+
+    messages.success(request, f'Test data saved for {test_module.template.name}')
+    return redirect('inspection_detail', inspection_id=inspection_id)
 
 
 @login_required
