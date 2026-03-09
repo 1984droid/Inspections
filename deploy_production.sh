@@ -430,9 +430,38 @@ main() {
         # Pull latest changes
         git pull origin main 2>/dev/null || git pull origin master 2>/dev/null || print_warning "Git pull failed - continuing with local files"
 
-        # Check if .env exists, create if missing
+        # Check if .env exists and has required fields
         if [ ! -f .env ]; then
-            print_warning ".env file not found, using defaults from repo"
+            print_error ".env file not found!"
+            print_info "Creating new .env file for production..."
+
+            # Setup PostgreSQL first
+            setup_postgresql
+
+            # Create new .env file
+            create_env_file
+        else
+            print_status "Found existing .env file"
+
+            # Check if DB_PASSWORD exists
+            DB_PASSWORD=$(grep "^DB_PASSWORD=" .env 2>/dev/null | cut -d'=' -f2 | tr -d '\r')
+
+            if [ -z "$DB_PASSWORD" ]; then
+                print_warning "DB_PASSWORD not found in .env, setting up database..."
+                setup_postgresql
+
+                # Add database settings to .env
+                cat >> .env <<EOF
+
+# Database (PostgreSQL) - PRODUCTION
+USE_SQLITE=False
+DB_NAME=inspectionapp
+DB_USER=inspectionapp
+DB_PASSWORD=$DB_PASSWORD
+DB_HOST=localhost
+DB_PORT=5432
+EOF
+            fi
         fi
 
         # Generate unique SECRET_KEY
@@ -462,8 +491,15 @@ ALTER USER inspectionapp WITH PASSWORD '$DB_PASSWORD';
 EOF
             print_status "Database password synced: inspectionapp"
         else
-            print_error "No DB_PASSWORD found in .env file!"
+            print_error "Still no DB_PASSWORD in .env after configuration!"
             exit 1
+        fi
+
+        # Remove SQLite database if it exists
+        if [ -f db.sqlite3 ]; then
+            print_warning "Removing SQLite database (switching to PostgreSQL)..."
+            rm -f db.sqlite3
+            print_status "SQLite database removed"
         fi
 
         setup_python_env
