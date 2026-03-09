@@ -24,40 +24,19 @@ if not "%confirm%"=="YES" (
 
 echo.
 echo ============================================================
-echo Step 2: Deleting database file...
+echo Step 2: Flushing database (keeping migrations)...
 echo ============================================================
-if exist "db.sqlite3" (
-    del /F /Q db.sqlite3
-    echo [OK] Database deleted
-) else (
-    echo [INFO] No database file found
-)
-
-echo.
-echo ============================================================
-echo Step 3: Removing migration files...
-echo ============================================================
-if exist "inspections\migrations\0*.py" (
-    del /F /Q inspections\migrations\0*.py
-    echo [OK] Migration files removed
-) else (
-    echo [INFO] No migration files found
-)
-
-echo.
-echo ============================================================
-echo Step 4: Creating fresh migrations...
-echo ============================================================
-.venv\Scripts\python.exe manage.py makemigrations
+.venv\Scripts\python.exe manage.py flush --no-input
 if errorlevel 1 (
-    echo [ERROR] Failed to create migrations
+    echo [ERROR] Failed to flush database
     pause
     exit /b 1
 )
+echo [OK] Database flushed
 
 echo.
 echo ============================================================
-echo Step 5: Applying migrations...
+echo Step 3: Applying migrations...
 echo ============================================================
 .venv\Scripts\python.exe manage.py migrate
 if errorlevel 1 (
@@ -65,10 +44,11 @@ if errorlevel 1 (
     pause
     exit /b 1
 )
+echo [OK] Migrations applied
 
 echo.
 echo ============================================================
-echo Step 6: Seeding initial data (users, company, equipment)...
+echo Step 4: Seeding initial data (users, company, equipment)...
 echo ============================================================
 .venv\Scripts\python.exe manage.py seed_initial_data --force-passwords
 if errorlevel 1 (
@@ -80,7 +60,7 @@ echo [OK] Initial data seeded
 
 echo.
 echo ============================================================
-echo Step 7: Importing templates...
+echo Step 5: Importing templates...
 echo ============================================================
 if exist "periodic_a922.json" (
     .venv\Scripts\python.exe manage.py import_new_template periodic_a922.json
