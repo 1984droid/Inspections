@@ -24,18 +24,6 @@ if not "%confirm%"=="YES" (
 
 echo.
 echo ============================================================
-echo Step 1: Installing dependencies...
-echo ============================================================
-.venv\Scripts\pip.exe install -r requirements.txt
-if errorlevel 1 (
-    echo [ERROR] Failed to install dependencies
-    pause
-    exit /b 1
-)
-echo [OK] Dependencies installed
-
-echo.
-echo ============================================================
 echo Step 2: Deleting database file...
 echo ============================================================
 if exist "db.sqlite3" (
@@ -80,10 +68,15 @@ if errorlevel 1 (
 
 echo.
 echo ============================================================
-echo Step 6: Creating superuser...
+echo Step 6: Seeding initial data (users, company, equipment)...
 echo ============================================================
-echo Please enter superuser credentials:
-.venv\Scripts\python.exe manage.py createsuperuser
+.venv\Scripts\python.exe manage.py seed_initial_data --force-passwords
+if errorlevel 1 (
+    echo [ERROR] Failed to seed initial data
+    pause
+    exit /b 1
+)
+echo [OK] Initial data seeded
 
 echo.
 echo ============================================================
@@ -117,49 +110,21 @@ echo [OK] Templates imported
 
 echo.
 echo ============================================================
-echo Step 8: Seeding initial data...
-echo ============================================================
-.venv\Scripts\python.exe manage.py seed_initial_data
-if errorlevel 1 (
-    echo [ERROR] Failed to seed initial data
-    pause
-    exit /b 1
-)
-echo [OK] Initial data seeded
-
-echo.
-echo ============================================================
-echo Step 9: Populating ANSI references...
-echo ============================================================
-.venv\Scripts\python.exe populate_ansi_refs.py
-if errorlevel 1 (
-    echo [ERROR] Failed to populate ANSI references
-    pause
-    exit /b 1
-)
-echo [OK] ANSI references populated
-
-echo.
-echo ============================================================
-echo Step 10: Cleaning media files...
-echo ============================================================
-if exist "media\defect_photos\*.*" (
-    del /F /Q media\defect_photos\*.*
-    echo [OK] Defect photos cleared
-)
-if exist "media\generated_docs\*.*" (
-    del /F /Q media\generated_docs\*.*
-    echo [OK] Generated documents cleared
-)
-
-echo.
-echo ============================================================
 echo                DATABASE RESET COMPLETE!
 echo ============================================================
 echo.
 echo The database has been reset with:
-echo   - Templates loaded
-echo   - Seed data (users, customer, company info)
+echo   - All 8 templates loaded (including load_test_structural.json)
+echo   - Seed data from seed_data.json:
+echo       * Company: Advantage Fleet LLC
+echo       * Users: nickp, kylep, josh
+echo       * Customer: MJ Electric
+echo       * Equipment: TEST-SN-001 (Terex TL38P, Category C)
+echo.
+echo Login credentials:
+echo   - nickp / AdvFleet123!
+echo   - kylep / AdvFleet123!
+echo   - josh / workAccount
 echo.
 echo To start the server, run:
 echo     run.bat
