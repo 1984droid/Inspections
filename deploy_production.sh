@@ -188,8 +188,10 @@ setup_python_env() {
 create_env_file() {
     print_info "Creating production .env file..."
 
-    # Generate Django secret key
-    SECRET_KEY=$(python3.14 -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())")
+    # Generate Django secret key (activate venv first)
+    cd "$APP_DIR"
+    source .venv/bin/activate
+    SECRET_KEY=$(python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())")
 
     # Get server IP
     SERVER_IP=$(hostname -I | awk '{print $1}')
@@ -435,7 +437,8 @@ main() {
 
         # Generate unique SECRET_KEY
         print_info "Generating unique SECRET_KEY..."
-        NEW_SECRET_KEY=$(python3 -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())")
+        source .venv/bin/activate
+        NEW_SECRET_KEY=$(python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())")
         sed -i "s|SECRET_KEY=.*|SECRET_KEY=$NEW_SECRET_KEY|g" .env
 
         # Update ALLOWED_HOSTS
