@@ -9,6 +9,7 @@
 #   bash deploy_production.sh                 # Interactive setup (no chmod needed)
 #   bash deploy_production.sh --auto          # Automated (use defaults)
 #   bash deploy_production.sh --update        # Update existing deployment
+#   bash deploy_production.sh --fresh         # Wipe and fresh install with seed data
 #
 
 set -e  # Exit on error
@@ -33,6 +34,7 @@ echo ""
 # Parse arguments
 AUTO_MODE=false
 UPDATE_MODE=false
+FRESH_MODE=false
 
 for arg in "$@"; do
     case $arg in
@@ -42,6 +44,10 @@ for arg in "$@"; do
             ;;
         --update)
             UPDATE_MODE=true
+            shift
+            ;;
+        --fresh)
+            FRESH_MODE=true
             shift
             ;;
     esac
@@ -448,7 +454,67 @@ start_service() {
 
 # Main deployment flow
 main() {
-    if $UPDATE_MODE; then
+    if $FRESH_MODE; then
+        print_info "FRESH INSTALL MODE: Wiping and starting clean..."
+
+        # Stop service if running
+        if systemctl is-active --quiet inspectionapp 2>/dev/null; then
+            print_info "Stopping inspectionapp service..."
+            sudo systemctl stop inspectionapp
+        fi
+
+        # Wipe PostgreSQL database
+        print_warning "Dropping existing database..."
+        sudo -u postgres psql <<EOF
+DROP DATABASE IF EXISTS inspectionapp;
+DROP USER IF EXISTS inspectionapp;
+EOF
+        print_status "Database wiped"
+
+        # Remove old virtualenv
+        if [ -d "$APP_DIR/.venv" ]; then
+            print_info "Removing old virtual environment..."
+            rm -rf "$APP_DIR/.venv"
+        fi
+
+        # Remove old .env
+        if [ -f "$APP_DIR/.env" ]; then
+            print_info "Removing old .env file..."
+            rm -f "$APP_DIR/.env"
+        fi
+
+        # Remove media files (generated PDFs, photos)
+        if [ -d "$APP_DIR/media" ]; then
+            print_info "Removing old media files..."
+            rm -rf "$APP_DIR/media"/*
+        fi
+
+        # Remove SQLite db if exists
+        if [ -f "$APP_DIR/db.sqlite3" ]; then
+            rm -f "$APP_DIR/db.sqlite3"
+        fi
+
+        print_status "Clean slate ready"
+
+        # Now proceed with fresh install
+        check_dependencies
+        setup_postgresql
+        setup_python_env
+        create_env_file
+
+        # Ensure production settings
+        print_info "Ensuring production database settings..."
+        sed -i "s|USE_SQLITE=.*|USE_SQLITE=False|g" .env
+        sed -i "s|DEBUG=.*|DEBUG=False|g" .env
+        sed -i "s|DB_PASSWORD=.*|DB_PASSWORD=$DB_PASSWORD|g" .env
+        print_status "Production settings confirmed"
+
+        setup_database
+        configure_nginx
+        create_systemd_service
+        start_service
+
+    elif $UPDATE_MODE; then
         print_info "UPDATE MODE: Updating existing deployment..."
 
         cd "$APP_DIR"
