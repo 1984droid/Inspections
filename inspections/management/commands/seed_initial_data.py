@@ -97,12 +97,15 @@ class Command(BaseCommand):
             )
 
             # Set password if user was just created OR if force_passwords is enabled
+            password_updated = False
             if 'password' in inspector_data:
                 if user_created:
                     user.set_password(inspector_data['password'])
+                    password_updated = True
                     self.stdout.write(self.style.SUCCESS(f'Created user: {username}'))
                 elif force_passwords:
                     user.set_password(inspector_data['password'])
+                    password_updated = True
                     self.stdout.write(self.style.SUCCESS(f'Updated password for user: {username}'))
                 else:
                     self.stdout.write(self.style.SUCCESS(f'Updated user: {username}'))
@@ -115,6 +118,9 @@ class Command(BaseCommand):
                     user.last_name = inspector_data['last_name']
                 if 'email' in inspector_data:
                     user.email = inspector_data['email']
+
+            # Save user if password was updated or other fields changed
+            if password_updated or not user_created:
                 user.save()
 
             # Create or update inspector profile
