@@ -64,11 +64,11 @@ def create_database():
     print("\n📊 Database Setup")
     print("-" * 60)
 
-    db_name = os.getenv('DATABASE_NAME', 'inspection_db')
-    db_user = os.getenv('DATABASE_USER', 'postgres')
-    db_password = os.getenv('DATABASE_PASSWORD', 'postgres')
-    db_host = os.getenv('DATABASE_HOST', 'localhost')
-    db_port = os.getenv('DATABASE_PORT', '5432')
+    db_name = os.getenv('DB_NAME', os.getenv('DATABASE_NAME', 'inspectionapp'))
+    db_user = os.getenv('DB_USER', os.getenv('DATABASE_USER', 'inspectionapp'))
+    db_password = os.getenv('DB_PASSWORD', os.getenv('DATABASE_PASSWORD', 'postgres'))
+    db_host = os.getenv('DB_HOST', os.getenv('DATABASE_HOST', 'localhost'))
+    db_port = os.getenv('DB_PORT', os.getenv('DATABASE_PORT', '5432'))
 
     print(f"Database: {db_name}")
     print(f"User: {db_user}")

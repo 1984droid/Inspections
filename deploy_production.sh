@@ -306,14 +306,11 @@ setup_database() {
         # Import templates (only on fresh install, updates handle this separately)
         print_info "Importing inspection templates..."
         cd "$APP_DIR"
+        source .venv/bin/activate
 
-        if [ -f "setup.py" ]; then
-            python setup.py
-            print_status "Templates imported successfully"
-        else
-            print_warning "setup.py not found - skipping template import"
-            print_info "Run 'python setup.py' manually to import templates"
-        fi
+        # Use Django management command instead of setup.py
+        python manage.py import_templates
+        print_status "Templates imported successfully"
     fi
 }
 
