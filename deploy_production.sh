@@ -463,6 +463,14 @@ main() {
             sudo systemctl stop inspectionapp
         fi
 
+        # Load DB password from existing .env if available
+        if [ -f "$APP_DIR/.env" ]; then
+            DB_PASSWORD=$(grep "^DB_PASSWORD=" "$APP_DIR/.env" 2>/dev/null | cut -d'=' -f2 | tr -d '\r')
+            if [ -n "$DB_PASSWORD" ]; then
+                print_info "Using database password from existing .env"
+            fi
+        fi
+
         # Wipe PostgreSQL database
         print_warning "Dropping existing database..."
         sudo -u postgres psql <<EOF
@@ -475,12 +483,6 @@ EOF
         if [ -d "$APP_DIR/.venv" ]; then
             print_info "Removing old virtual environment..."
             rm -rf "$APP_DIR/.venv"
-        fi
-
-        # Remove old .env
-        if [ -f "$APP_DIR/.env" ]; then
-            print_info "Removing old .env file..."
-            rm -f "$APP_DIR/.env"
         fi
 
         # Remove media files (generated PDFs, photos)
@@ -500,13 +502,22 @@ EOF
         check_dependencies
         setup_postgresql
         setup_python_env
-        create_env_file
+
+        # Check if .env exists, create if not
+        if [ ! -f "$APP_DIR/.env" ]; then
+            print_warning "No .env found, creating new one..."
+            create_env_file
+        else
+            print_status "Using existing .env file"
+        fi
 
         # Ensure production settings
         print_info "Ensuring production database settings..."
         sed -i "s|USE_SQLITE=.*|USE_SQLITE=False|g" .env
         sed -i "s|DEBUG=.*|DEBUG=False|g" .env
-        sed -i "s|DB_PASSWORD=.*|DB_PASSWORD=$DB_PASSWORD|g" .env
+        if [ -n "$DB_PASSWORD" ]; then
+            sed -i "s|DB_PASSWORD=.*|DB_PASSWORD=$DB_PASSWORD|g" .env
+        fi
         print_status "Production settings confirmed"
 
         setup_database

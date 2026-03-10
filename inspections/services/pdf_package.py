@@ -1540,8 +1540,8 @@ def generate_package_pdf(inspection):
 
                 num_photos = len(photos)
 
-                if num_photos <= 3:
-                    # 1-3 photos - single column (20:9 aspect ratio)
+                if num_photos == 1 or num_photos == 2:
+                    # 1-2 photos - single column, large (20:9 aspect ratio)
                     for photo in photos:
                         try:
                             img = Image(photo.image.path, width=6.5*inch, height=2.93*inch, kind='proportional')
@@ -1549,19 +1549,33 @@ def generate_package_pdf(inspection):
                             if photo.caption:
                                 caption_style = ParagraphStyle('PhotoCaption', parent=normal_style, fontSize=8, textColor=colors.HexColor('#666'), alignment=TA_CENTER)
                                 story.append(Paragraph(f"<i>{photo.caption}</i>", caption_style))
-                            story.append(Spacer(1, 0.1*inch))
+                            story.append(Spacer(1, 0.05*inch))
                         except Exception:
                             story.append(Paragraph("[Photo unavailable]", normal_style))
-                            story.append(Spacer(1, 0.1*inch))
+                            story.append(Spacer(1, 0.05*inch))
+
+                elif num_photos == 3:
+                    # 3 photos - single column, smaller to fit on one page (20:9 aspect ratio)
+                    for photo in photos:
+                        try:
+                            img = Image(photo.image.path, width=5.0*inch, height=2.25*inch, kind='proportional')
+                            story.append(img)
+                            if photo.caption:
+                                caption_style = ParagraphStyle('PhotoCaption', parent=normal_style, fontSize=8, textColor=colors.HexColor('#666'), alignment=TA_CENTER)
+                                story.append(Paragraph(f"<i>{photo.caption}</i>", caption_style))
+                            story.append(Spacer(1, 0.05*inch))
+                        except Exception:
+                            story.append(Paragraph("[Photo unavailable]", normal_style))
+                            story.append(Spacer(1, 0.05*inch))
 
                 elif num_photos <= 6:
-                    # 4-6 photos - 2 columns (20:9 aspect ratio)
+                    # 4-6 photos - 2 columns, larger (20:9 aspect ratio)
                     photo_table_data = []
                     photo_row = []
 
                     for photo_idx, photo in enumerate(photos):
                         try:
-                            img = Image(photo.image.path, width=3.2*inch, height=1.44*inch, kind='proportional')
+                            img = Image(photo.image.path, width=3.8*inch, height=1.71*inch, kind='proportional')
                             photo_cell = [img]
                             if photo.caption:
                                 caption_style = ParagraphStyle('PhotoCaption', parent=normal_style, fontSize=7, textColor=colors.HexColor('#666'), alignment=TA_CENTER)
@@ -1585,21 +1599,21 @@ def generate_package_pdf(inspection):
                     photo_table.setStyle(TableStyle([
                         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
                         ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                        ('LEFTPADDING', (0, 0), (-1, -1), 2),
-                        ('RIGHTPADDING', (0, 0), (-1, -1), 2),
-                        ('TOPPADDING', (0, 0), (-1, -1), 3),
-                        ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+                        ('LEFTPADDING', (0, 0), (-1, -1), 1),
+                        ('RIGHTPADDING', (0, 0), (-1, -1), 1),
+                        ('TOPPADDING', (0, 0), (-1, -1), 1),
+                        ('BOTTOMPADDING', (0, 0), (-1, -1), 1),
                     ]))
                     story.append(photo_table)
 
                 else:
-                    # 7+ photos - 3 columns (20:9 aspect ratio)
+                    # 7+ photos - 3 columns, larger (20:9 aspect ratio)
                     photo_table_data = []
                     photo_row = []
 
                     for photo_idx, photo in enumerate(photos):
                         try:
-                            img = Image(photo.image.path, width=2.1*inch, height=0.95*inch, kind='proportional')
+                            img = Image(photo.image.path, width=2.4*inch, height=1.08*inch, kind='proportional')
                             photo_cell = [img]
                             if photo.caption:
                                 caption_style = ParagraphStyle('PhotoCaption', parent=normal_style, fontSize=6, textColor=colors.HexColor('#666'), alignment=TA_CENTER)
@@ -1625,8 +1639,8 @@ def generate_package_pdf(inspection):
                         ('VALIGN', (0, 0), (-1, -1), 'TOP'),
                         ('LEFTPADDING', (0, 0), (-1, -1), 1),
                         ('RIGHTPADDING', (0, 0), (-1, -1), 1),
-                        ('TOPPADDING', (0, 0), (-1, -1), 2),
-                        ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
+                        ('TOPPADDING', (0, 0), (-1, -1), 1),
+                        ('BOTTOMPADDING', (0, 0), (-1, -1), 1),
                     ]))
                     story.append(photo_table)
 

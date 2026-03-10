@@ -22,9 +22,9 @@ def generate_certificate_pdf(inspection):
     c.setStrokeColor(colors.black)
 
     # Company Logo (high contrast for thermal printing)
-    logo_path = settings.BASE_DIR / 'inspections' / 'static' / 'inspections' / 'images' / 'logo_hi_contrast.png'
+    logo_path = settings.BASE_DIR / 'ADV hex brighter inverted_hi_contrast.png'
     if logo_path.exists():
-        c.drawImage(str(logo_path), width / 2 - 1*inch, height - 1.2*inch, width=2*inch, height=1*inch, preserveAspectRatio=True, mask='auto')
+        c.drawImage(str(logo_path), width / 2 - 2*inch, height - 1.2*inch, width=4*inch, height=1*inch, preserveAspectRatio=True, mask='auto')
         y_start = height - 1.5*inch
     else:
         y_start = height - 1*inch
@@ -148,6 +148,39 @@ def generate_certificate_pdf(inspection):
     c.setFont("Helvetica", 11)
     c.drawString(value_x, y_pos, inspection.certificate_number or 'N/A')
     y_pos -= 0.3*inch
+
+    # Defects breakdown (if failed)
+    if result == 'FAIL':
+        from inspections.models import Defect
+        defects = Defect.objects.filter(inspection=inspection).select_related('question__section')
+
+        if defects.exists():
+            c.setLineWidth(2)
+            c.line(1.5*inch, y_pos, 7*inch, y_pos)
+            y_pos -= 0.25*inch
+
+            c.setFont("Helvetica-Bold", 11)
+            c.drawString(label_x, y_pos, f"Defects Found ({defects.count()}):")
+            y_pos -= 0.22*inch
+
+            c.setFont("Helvetica", 9)
+            # Show first 8 defects with section name
+            for defect in defects[:8]:
+                section_name = defect.question.section.title if defect.question and defect.question.section else "Unknown"
+                # Truncate long section names for thermal printer
+                if len(section_name) > 50:
+                    section_name = section_name[:47] + "..."
+                c.drawString(label_x + 0.15*inch, y_pos, f"• {section_name}")
+                y_pos -= 0.18*inch
+
+            # If more than 8 defects, show count
+            if defects.count() > 8:
+                remaining = defects.count() - 8
+                c.setFont("Helvetica-Oblique", 9)
+                c.drawString(label_x + 0.15*inch, y_pos, f"• ...and {remaining} more (see full report)")
+                y_pos -= 0.18*inch
+
+            y_pos -= 0.1*inch
 
     # Bottom: company info (compact)
     c.setLineWidth(2)
