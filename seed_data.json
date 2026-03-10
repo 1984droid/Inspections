@@ -10,7 +10,7 @@
     "phone": "(616) 997-0022",
     "email": "info@advfleet.com",
     "website": "https://www.advfleet.com",
-    "license_number": "MI-TBD-49404",
+    "license_number": "MI-49404",
     "certifications": "ANSI A92.2 Certified"
   },
   "inspectors": [
@@ -21,7 +21,7 @@
       "last_name": "Pyne",
       "email": "nickp@advfleet.com",
       "is_staff": true,
-      "phone": "(616) 555-0000",
+      "phone": "(616) 997-0022",
       "inspector_email": "nickp@advfleet.com",
       "certification_number": "ANSI-2026-JI-49404",
       "certifications": "ANSI A92.2 Inspector"
@@ -33,7 +33,7 @@
       "last_name": "Pressler",
       "email": "kylep@advfleet.com",
       "is_staff": true,
-      "phone": "(616) 555-0000",
+      "phone": "(616) 997-0022",
       "inspector_email": "kylep@advfleet.com",
       "certification_number": "ANSI-2026-JI-49404",
       "certifications": "ANSI A92.2 Inspector"
@@ -54,43 +54,23 @@
   "customers": [
     {
       "name": "MJ Electric",
-      "location": "North Yard - Spokane",
-      "asset_id": "ASSET-MJE-001",
-      "address_line1": "123 Industrial Blvd",
-      "address_line2": "Suite 200",
-      "city": "Spokane",
-      "state": "WA",
-      "zip_code": "99201",
+      "location": "",
+      "asset_id": "",
+      "address_line1": "1330 Piedmont Dr.",
+      "address_line2": "",
+      "city": "Troy",
+      "state": "MI",
+      "zip_code": "48083",
       "country": "USA",
       "phone": "(509) 555-1234",
       "phone_secondary": "(509) 555-1235",
-      "email": "fleet@mjelectric.com",
-      "email_secondary": "operations@mjelectric.com",
+      "email": "ap@mjelectric.com",
+      "email_secondary": "inspections@mjelectric.com",
       "website": "https://www.mjelectric.com",
-      "contact_person_name": "John Smith",
-      "contact_person_title": "Fleet Manager",
-      "contact_person_phone": "(509) 555-1236",
-      "contact_person_email": "jsmith@mjelectric.com"
-    }
-  ],
-  "equipment": [
-    {
-      "customer_name": "MJ Electric",
-      "make": "Terex",
-      "model": "TL38P",
-      "serial_number": "TEST-SN-001",
-      "unit_number": "AERIAL-408",
-      "max_working_height": 45.0,
-      "year_of_manufacture": 2020,
-      "vehicle_make": "Ford",
-      "vehicle_model": "F-550",
-      "vehicle_unit_number": "TRUCK-429",
-      "vehicle_vin": "1FDUF5HT5KED98426",
-      "vehicle_year": 2019,
-      "vehicle_license_plate": "WA8431",
-      "insulation_type": "insulating",
-      "category": "c",
-      "upper_controls_high_resistance": true
+      "contact_person_name": "Ken Meyers",
+      "contact_person_title": "Manager",
+      "contact_person_phone": "",
+      "contact_person_email": "kmeyers@mjelectric.com"
     }
   ]
 }
