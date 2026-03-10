@@ -141,6 +141,32 @@ setup_postgresql() {
         print_info "Using provided database password"
     fi
 
+    # Check PostgreSQL authentication method
+    print_info "Configuring PostgreSQL authentication..."
+
+    # Ensure peer authentication works for postgres user
+    if ! sudo -u postgres psql -c '\q' 2>/dev/null; then
+        print_warning "PostgreSQL peer authentication issue detected"
+        print_info "Checking pg_hba.conf configuration..."
+
+        # Backup pg_hba.conf
+        PG_VERSION=$(psql --version | awk '{print $3}' | cut -d'.' -f1)
+        PG_HBA="/etc/postgresql/$PG_VERSION/main/pg_hba.conf"
+
+        if [ -f "$PG_HBA" ]; then
+            sudo cp "$PG_HBA" "$PG_HBA.backup.$(date +%Y%m%d_%H%M%S)"
+
+            # Ensure local peer authentication for postgres user
+            if ! sudo grep -q "^local.*all.*postgres.*peer" "$PG_HBA"; then
+                print_info "Adding peer authentication for postgres user..."
+                sudo sed -i '1i\# Allow postgres user to connect via peer authentication' "$PG_HBA"
+                sudo sed -i '2i\local   all             postgres                                peer' "$PG_HBA"
+                sudo systemctl reload postgresql
+                sleep 2
+            fi
+        fi
+    fi
+
     # Create database user and database
     sudo -u postgres psql <<EOF
 DO \$\$
