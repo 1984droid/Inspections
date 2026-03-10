@@ -11,7 +11,7 @@ from reportlab.platypus import (
     Table, TableStyle, Image, PageTemplate, Frame
 )
 from reportlab.lib import colors
-from inspections.models import GeneratedDocument, CompanyInfo
+from inspections.models import GeneratedDocument, CompanyInfo, InspectionAnswer
 
 
 def footer_with_page_number(canvas, doc, inspection):
@@ -406,8 +406,45 @@ def generate_package_pdf(inspection):
         alignment=TA_CENTER
     )
 
+    # Special styling for FAIL - white text on black background using nested table
+    if overall_result_text == 'FAIL':
+        fail_style = ParagraphStyle(
+            'FailStyle',
+            parent=styles['Normal'],
+            fontSize=9,
+            alignment=TA_CENTER,
+            textColor=colors.white,
+            fontName='Helvetica-Bold'
+        )
+        fail_badge = Table([[Paragraph('FAIL', fail_style)]], colWidths=[0.7*inch])
+        fail_badge.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), colors.black),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('TOPPADDING', (0, 0), (-1, -1), 2),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
+            ('LEFTPADDING', (0, 0), (-1, -1), 4),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 4),
+        ]))
+        result_cell_content = [
+            [Paragraph("<b>Overall Result:</b>", col_style)],
+            [fail_badge]
+        ]
+        result_cell_table = Table(result_cell_content, colWidths=[7.4*inch / 3])
+        result_cell_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('TOPPADDING', (0, 0), (-1, -1), 0),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+            ('LEFTPADDING', (0, 0), (-1, -1), 0),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+        ]))
+        result_cell = result_cell_table
+    else:
+        result_cell = Paragraph(f"<b>Overall Result:</b><br/>{overall_result_text}", col_style)
+
     result_summary_data.append([
-        Paragraph(f"<b>Overall Result:</b><br/>{overall_result_text}", col_style),
+        result_cell,
         Paragraph(f"<b>Status:</b><br/>{status_text}", col_style),
         Paragraph(f"<b>Valid Until:</b><br/>{valid_until_text}", col_style)
     ])
@@ -512,7 +549,7 @@ def generate_package_pdf(inspection):
     total_questions = inspection.answers.count()
     pass_count = inspection.answers.filter(status='pass').count()
     fail_count = inspection.answers.filter(status='fail').count()
-    na_count = inspection.answers.filter(status='na').count()
+    na_count = inspection.answers.filter(status='n/a').count()
     defect_count = inspection.defects.count()
     test_module_count = inspection.test_modules.count()
 
@@ -646,11 +683,41 @@ def generate_package_pdf(inspection):
         fontSize=9
     )
 
+    # Helper function to create FAIL badge with black background
+    def create_fail_badge(text='FAIL'):
+        fail_badge_style = ParagraphStyle(
+            'FailBadgeStyle',
+            parent=styles['Normal'],
+            fontSize=9,
+            alignment=TA_CENTER,
+            textColor=colors.white,
+            fontName='Helvetica-Bold'
+        )
+        badge = Table([[Paragraph(text, fail_badge_style)]], colWidths=[0.55*inch])
+        badge.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), colors.black),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('TOPPADDING', (0, 0), (-1, -1), 2),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
+        ]))
+        return badge
+
     # Determine section statuses
     if inspection.status == 'completed':
-        # Show PASS/FAIL/Not performed
-        freq_status = 'PASS' if freq_complete > 0 and fail_count == 0 else ('FAIL' if fail_count > 0 else 'Not performed')
-        periodic_status = 'PASS' if periodic_complete > 0 and fail_count == 0 else ('FAIL' if fail_count > 0 else 'Not performed')
+        # Check for failures specific to each section
+        freq_fail_count = inspection.answers.filter(
+            status='fail',
+            question__section__title__icontains='Frequent'
+        ).count()
+        periodic_fail_count = inspection.answers.filter(
+            status='fail',
+            question__section__title__icontains='Periodic'
+        ).count()
+
+        # Show PASS/FAIL/Not performed - use badges for FAIL
+        freq_status = 'PASS' if freq_complete > 0 and freq_fail_count == 0 else (create_fail_badge() if freq_fail_count > 0 else 'Not performed')
+        periodic_status = 'PASS' if periodic_complete > 0 and periodic_fail_count == 0 else (create_fail_badge() if periodic_fail_count > 0 else 'Not performed')
     else:
         # Show completion status
         freq_status = f"{freq_complete} / {freq_total} complete" if freq_total > 0 else "Not started"
@@ -662,11 +729,48 @@ def generate_package_pdf(inspection):
         ['Periodic Inspection', periodic_status],
     ]
 
-    # Add all test module types
+    # Add all test module types with pass/fail status
+    equipment_category = inspection.equipment.category.lower() if inspection.equipment.category else None
+
     for template_name, is_performed in test_module_status.items():
-        # Shorten display name
-        display_name = template_name.replace('ANSI A92.2 (2021) ', '').replace('Test - ', '').replace('Dielectric Test - ', 'Dielectric - ')
-        status = 'Performed' if is_performed else 'Not Performed'
+        # Filter dielectric tests by equipment category - skip the one that doesn't apply
+        if 'Dielectric Test - Category A/B' in template_name:
+            if equipment_category not in ['a', 'b']:
+                continue  # Skip A/B test if equipment is not category A or B
+        elif 'Dielectric Test - Category C/D/E' in template_name:
+            if equipment_category not in ['c', 'd', 'e']:
+                continue  # Skip C/D/E test if equipment is not category C, D, or E
+
+        # Shorten display name and remove category-specific labels from dielectric tests
+        display_name = template_name.replace('ANSI A92.2 (2021) ', '').replace('Test - ', '')
+
+        # Replace dielectric test names with generic label (after removing prefix, check what remains)
+        if 'Dielectric Category A/B' in display_name:
+            display_name = 'Dielectric Test'
+        elif 'Dielectric Category C/D/E' in display_name:
+            display_name = 'Dielectric Test'
+
+        # Determine status based on whether test was performed and if completed, check for failures
+        if not is_performed:
+            status = 'Not Performed'
+        elif inspection.status == 'completed':
+            # Find the template object to check for failures in this test module
+            template_obj = all_test_templates.filter(name=template_name).first()
+            if template_obj:
+                # Get all sections from this test module template
+                test_sections = template_obj.sections.all()
+                # Check if any answers in these sections failed
+                test_fail_count = InspectionAnswer.objects.filter(
+                    inspection=inspection,
+                    question__section__in=test_sections,
+                    status='fail'
+                ).count()
+                status = create_fail_badge() if test_fail_count > 0 else 'PASS'
+            else:
+                status = 'Performed'
+        else:
+            status = 'In Progress'
+
         section_data.append([display_name, status])
 
     section_table = Table(section_data, colWidths=[5.2*inch, 2.2*inch])
@@ -813,14 +917,28 @@ def generate_package_pdf(inspection):
 
     # ===== TEST MODULES SECTION (if any) =====
     # Extract and format test modules as dedicated test result pages
+    # Filter test modules based on equipment category
+    equipment_category = inspection.equipment.category.lower() if inspection.equipment.category else None
+
     for test_module in test_modules:
         if not test_module.test_data:
             continue
 
+        # Filter dielectric tests by equipment category
+        test_name = test_module.template.name.upper()
+        if 'DIELECTRIC' in test_name:
+            if 'CATEGORY A/B' in test_name:
+                # Only show A/B test if equipment is category A or B
+                if equipment_category not in ['a', 'b']:
+                    continue
+            elif 'CATEGORY C/D/E' in test_name:
+                # Only show C/D/E test if equipment is category C, D, or E
+                if equipment_category not in ['c', 'd', 'e']:
+                    continue
+
         story.append(PageBreak())
 
         # Determine test type and format accordingly
-        test_name = test_module.template.name.upper()
         is_dielectric = 'DIELECTRIC' in test_name
         is_load = 'LOAD' in test_name
 
@@ -893,7 +1011,117 @@ def generate_package_pdf(inspection):
             ]
             for condition in conditions:
                 story.append(Paragraph(condition, normal_style))
-            story.append(Spacer(1, 0.2*inch))
+            story.append(Spacer(1, 0.3*inch))
+
+        # Add professional certificate for test module
+        story.append(Spacer(1, 0.3*inch))
+
+        # Certificate box styling
+        cert_title_style = ParagraphStyle(
+            'CertTitle',
+            parent=heading_style,
+            fontSize=16,
+            fontName='Helvetica-Bold',
+            textColor=colors.HexColor('#2c3e50'),
+            spaceAfter=10,
+            alignment=TA_CENTER
+        )
+
+        cert_text_style = ParagraphStyle(
+            'CertText',
+            parent=normal_style,
+            fontSize=11,
+            leading=16,
+            alignment=TA_CENTER,
+            spaceAfter=8
+        )
+
+        # Build certificate content
+        cert_content = []
+        cert_content.append(Paragraph("CERTIFICATE OF COMPLETION", cert_title_style))
+        cert_content.append(Spacer(1, 0.15*inch))
+
+        # Determine test result by checking if any answers in this test module failed
+        test_module_sections = test_module.template.sections.all()
+        test_fail_count = InspectionAnswer.objects.filter(
+            inspection=inspection,
+            question__section__in=test_module_sections,
+            status='fail'
+        ).count()
+
+        test_result = "FAIL" if test_fail_count > 0 else "PASS"
+        # Use black background for FAIL, green for PASS
+        test_result_color = colors.black if test_fail_count > 0 else colors.HexColor('#27ae60')
+
+        # Get test-specific info
+        equipment_info = f"{inspection.equipment.manufacturer} {inspection.equipment.model}"
+        serial_num = inspection.equipment.serial_number or "N/A"
+
+        cert_text = f"""
+        This certifies that the <b>{test_module.template.name}</b> was performed on<br/>
+        <b>{equipment_info}</b> (Serial: <b>{serial_num}</b>)<br/>
+        on <b>{inspection.started_at.strftime('%B %d, %Y') if inspection.started_at else 'N/A'}</b><br/>
+        in accordance with <b>ANSI A92.2 (2021)</b> standards.
+        """
+
+        cert_content.append(Paragraph(cert_text, cert_text_style))
+        cert_content.append(Spacer(1, 0.15*inch))
+
+        # Result badge
+        result_style = ParagraphStyle(
+            'TestResult',
+            parent=styles['Heading1'],
+            fontSize=28,
+            fontName='Helvetica-Bold',
+            textColor=colors.whitesmoke,
+            alignment=TA_CENTER,
+            backColor=test_result_color,
+            borderPadding=12,
+            leading=36
+        )
+        cert_content.append(Paragraph(f"<b>{test_result}</b>", result_style))
+        cert_content.append(Spacer(1, 0.15*inch))
+
+        # Inspector info
+        inspector_name = inspection.inspector.get_full_name() or inspection.inspector.username
+        inspector_cert = ""
+        if hasattr(inspection.inspector, 'inspector_profile') and inspection.inspector.inspector_profile.certification_number:
+            inspector_cert = f" (Cert# {inspection.inspector.inspector_profile.certification_number})"
+
+        signature_style = ParagraphStyle(
+            'Signature',
+            parent=normal_style,
+            fontSize=10,
+            alignment=TA_CENTER,
+            spaceAfter=4
+        )
+
+        cert_content.append(Spacer(1, 0.1*inch))
+        cert_content.append(Paragraph(f"<b>Inspector:</b> {inspector_name}{inspector_cert}", signature_style))
+        cert_content.append(Paragraph(f"<b>Certificate #:</b> {inspection.certificate_number or 'N/A'}", signature_style))
+
+        # Company info if available
+        company = CompanyInfo.objects.first()
+        if company:
+            cert_content.append(Paragraph(f"<b>{company.name}</b>", signature_style))
+            if company.license_number:
+                cert_content.append(Paragraph(f"License# {company.license_number}", signature_style))
+
+        # Add certificate content in a styled box
+        cert_frame_data = [[cert_content]]
+        cert_table = Table(cert_frame_data, colWidths=[6.5*inch])
+        cert_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('BOX', (0, 0), (-1, -1), 2, colors.HexColor('#2c3e50')),
+            ('LEFTPADDING', (0, 0), (-1, -1), 20),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 20),
+            ('TOPPADDING', (0, 0), (-1, -1), 20),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 20),
+        ]))
+
+        story.append(cert_table)
+        story.append(Spacer(1, 0.2*inch))
 
     # ===== DETAILS SECTION =====
     # Group answers hierarchically by inspection phase, then subsection
@@ -1056,14 +1284,20 @@ def generate_package_pdf(inspection):
         header_shown = False
 
         for system_name, subsection_list in system_groups.items():
-            # System title (replaces subsection title) - ultra-compact spacing
+            # Add subtle separator line before each system (except first)
+            if header_shown:
+                from reportlab.platypus import HRFlowable
+                story.append(Spacer(1, 3))
+                story.append(HRFlowable(width="100%", thickness=0.5, color=colors.HexColor('#E0E0E0'), spaceBefore=0, spaceAfter=3))
+
+            # System title (replaces subsection title) - improved spacing for hierarchy
             system_title_style = ParagraphStyle(
                 'SystemTitle',
                 parent=subheading_style,
                 fontSize=10,
                 fontName='Helvetica-Bold',
-                spaceAfter=1,  # Minimal space before items
-                spaceBefore=4   # Small space from previous section
+                spaceAfter=3,  # Increased from 1 to 3 for better separation
+                spaceBefore=0   # Line provides separation
             )
             story.append(Paragraph(system_name, system_title_style))
 
@@ -1098,16 +1332,29 @@ def generate_package_pdf(inspection):
         # Section summaries removed for compact layout (totals already in Executive Summary)
 
     # ===== TEST MODULE QUESTION RESULTS =====
-    # Render test modules with proper visual hierarchy
-    first_test_module = True
+    # Filter test modules based on equipment category
+    # Only include the appropriate dielectric test (A/B or C/D/E) based on equipment category
+    filtered_test_modules = {}
+    equipment_category = inspection.equipment.category.lower() if inspection.equipment.category else None
+
     for test_module_name, test_module_data in test_module_answers.items():
-        # Only add page break before the first test module
-        if first_test_module:
-            story.append(PageBreak())
-            first_test_module = False
+        # Check if this is a dielectric test
+        if 'Dielectric Test - Category A/B' in test_module_name:
+            # Only include A/B test if equipment is category A or B
+            if equipment_category in ['a', 'b']:
+                filtered_test_modules[test_module_name] = test_module_data
+        elif 'Dielectric Test - Category C/D/E' in test_module_name:
+            # Only include C/D/E test if equipment is category C, D, or E
+            if equipment_category in ['c', 'd', 'e']:
+                filtered_test_modules[test_module_name] = test_module_data
         else:
-            # Add spacing between test modules instead of page break
-            story.append(Spacer(1, 0.5*inch))
+            # Include all other test modules
+            filtered_test_modules[test_module_name] = test_module_data
+
+    # Render test modules with proper visual hierarchy
+    # Add page break before each test module so each one starts on a new page
+    for test_module_name, test_module_data in filtered_test_modules.items():
+        story.append(PageBreak())
 
         # Test module header (main heading - large, bold)
         test_heading = test_module_name.upper()
@@ -1151,7 +1398,16 @@ def generate_package_pdf(inspection):
             })
 
         # Render grouped sections
+        first_group = True
         for display_group, sections_list in grouped_sections.items():
+            # Add subtle separator line before each group (except first)
+            if not first_group:
+                from reportlab.platypus import HRFlowable
+                story.append(Spacer(1, 3))
+                story.append(HRFlowable(width="100%", thickness=0.5, color=colors.HexColor('#E0E0E0'), spaceBefore=0, spaceAfter=3))
+
+            first_group = False
+
             # Only show display_group heading if it differs from test module name
             if display_group != test_module_name:
                 group_heading = display_group
@@ -1203,7 +1459,7 @@ def generate_package_pdf(inspection):
             if defect.question:
                 # ANSI reference with parent clause (avoid duplicates)
                 question_ref = ""
-                section_ref = defect.question.section.ansi_reference
+                section_ref = defect.question.section.ansi_reference if defect.question.section else None
                 question_ansi = defect.question.ansi_reference
 
                 if section_ref and question_ansi:
@@ -1217,9 +1473,13 @@ def generate_package_pdf(inspection):
                 elif question_ansi:
                     question_ref = f"ANSI A92.2 §{question_ansi}"
 
-                # Display ANSI reference prominently as separate row
+                # Always display ANSI reference row - show "Not specified" if no reference available
                 if question_ref:
                     defect_data.append(['Standard Reference:', Paragraph(f"<b>{question_ref}</b>", normal_style)])
+                else:
+                    # Show section title as fallback if no ANSI reference is available
+                    section_title = defect.question.section.title if defect.question.section else "Not specified"
+                    defect_data.append(['Standard Reference:', Paragraph(f"<i>{section_title}</i>", normal_style)])
 
                 # Show the inspection question/requirement
                 question_display = defect.question.prompt
@@ -1280,82 +1540,37 @@ def generate_package_pdf(inspection):
 
                 num_photos = len(photos)
 
-                if num_photos == 1:
-                    # Single photo - large, centered
-                    try:
-                        img = Image(photos[0].image.path, width=5.5*inch, height=4.1*inch, kind='proportional')
-                        story.append(img)
-                        if photos[0].caption:
-                            caption_style = ParagraphStyle('Caption', parent=normal_style, fontSize=9, textColor=colors.HexColor('#666'), alignment=TA_CENTER)
-                            story.append(Paragraph(f"<i>{photos[0].caption}</i>", caption_style))
-                    except Exception:
-                        story.append(Paragraph(f"[Photo could not be loaded]", normal_style))
-
-                elif num_photos == 2:
-                    # 2 photos - stacked vertically, larger
+                if num_photos <= 3:
+                    # 1-3 photos - single column (20:9 aspect ratio)
                     for photo in photos:
                         try:
-                            img = Image(photo.image.path, width=5.0*inch, height=3.75*inch, kind='proportional')
+                            img = Image(photo.image.path, width=6.5*inch, height=2.93*inch, kind='proportional')
                             story.append(img)
                             if photo.caption:
-                                caption_style = ParagraphStyle('PhotoCaption', parent=normal_style, fontSize=9, textColor=colors.HexColor('#666'), alignment=TA_CENTER, spaceAfter=8)
-                                story.append(Paragraph(f"<i>{photo.caption}</i>", caption_style))
-                        except Exception:
-                            story.append(Paragraph(f"[Photo unavailable]", normal_style))
-                        story.append(Spacer(1, 0.15*inch))
-
-                elif num_photos in [3, 4]:
-                    # 3-4 photos - 2 per row, medium size
-                    photo_table_data = []
-                    photo_row = []
-
-                    for photo_idx, photo in enumerate(photos):
-                        try:
-                            img = Image(photo.image.path, width=3.0*inch, height=2.25*inch, kind='proportional')
-                            photo_cell = [img]
-                            if photo.caption:
                                 caption_style = ParagraphStyle('PhotoCaption', parent=normal_style, fontSize=8, textColor=colors.HexColor('#666'), alignment=TA_CENTER)
-                                photo_cell.append(Paragraph(f"<i>{photo.caption}</i>", caption_style))
-                            photo_row.append(photo_cell)
-
-                            if len(photo_row) == 2 or photo_idx == len(photos) - 1:
-                                while len(photo_row) < 2:
-                                    photo_row.append([Paragraph('', normal_style)])
-                                photo_table_data.append(photo_row)
-                                photo_row = []
+                                story.append(Paragraph(f"<i>{photo.caption}</i>", caption_style))
+                            story.append(Spacer(1, 0.1*inch))
                         except Exception:
-                            photo_row.append([Paragraph("[Photo unavailable]", normal_style)])
-                            if len(photo_row) == 2:
-                                photo_table_data.append(photo_row)
-                                photo_row = []
+                            story.append(Paragraph("[Photo unavailable]", normal_style))
+                            story.append(Spacer(1, 0.1*inch))
 
-                    photo_table = Table(photo_table_data, colWidths=[3.5*inch, 3.5*inch])
-                    photo_table.setStyle(TableStyle([
-                        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                        ('LEFTPADDING', (0, 0), (-1, -1), 3),
-                        ('RIGHTPADDING', (0, 0), (-1, -1), 3),
-                        ('TOPPADDING', (0, 0), (-1, -1), 3),
-                        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
-                    ]))
-                    story.append(photo_table)
-
-                else:
-                    # 5+ photos - 2 per row, smaller to fit all on page
+                elif num_photos <= 6:
+                    # 4-6 photos - 2 columns (20:9 aspect ratio)
                     photo_table_data = []
                     photo_row = []
 
                     for photo_idx, photo in enumerate(photos):
                         try:
-                            # Compact size for many photos
-                            img = Image(photo.image.path, width=2.5*inch, height=1.9*inch, kind='proportional')
+                            img = Image(photo.image.path, width=3.2*inch, height=1.44*inch, kind='proportional')
                             photo_cell = [img]
                             if photo.caption:
                                 caption_style = ParagraphStyle('PhotoCaption', parent=normal_style, fontSize=7, textColor=colors.HexColor('#666'), alignment=TA_CENTER)
                                 photo_cell.append(Paragraph(f"<i>{photo.caption}</i>", caption_style))
                             photo_row.append(photo_cell)
 
+                            # Create new row every 2 photos
                             if len(photo_row) == 2 or photo_idx == len(photos) - 1:
+                                # Pad row if needed
                                 while len(photo_row) < 2:
                                     photo_row.append([Paragraph('', normal_style)])
                                 photo_table_data.append(photo_row)
@@ -1372,8 +1587,46 @@ def generate_package_pdf(inspection):
                         ('VALIGN', (0, 0), (-1, -1), 'TOP'),
                         ('LEFTPADDING', (0, 0), (-1, -1), 2),
                         ('RIGHTPADDING', (0, 0), (-1, -1), 2),
+                        ('TOPPADDING', (0, 0), (-1, -1), 3),
+                        ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+                    ]))
+                    story.append(photo_table)
+
+                else:
+                    # 7+ photos - 3 columns (20:9 aspect ratio)
+                    photo_table_data = []
+                    photo_row = []
+
+                    for photo_idx, photo in enumerate(photos):
+                        try:
+                            img = Image(photo.image.path, width=2.1*inch, height=0.95*inch, kind='proportional')
+                            photo_cell = [img]
+                            if photo.caption:
+                                caption_style = ParagraphStyle('PhotoCaption', parent=normal_style, fontSize=6, textColor=colors.HexColor('#666'), alignment=TA_CENTER)
+                                photo_cell.append(Paragraph(f"<i>{photo.caption}</i>", caption_style))
+                            photo_row.append(photo_cell)
+
+                            # Create new row every 3 photos
+                            if len(photo_row) == 3 or photo_idx == len(photos) - 1:
+                                # Pad row if needed
+                                while len(photo_row) < 3:
+                                    photo_row.append([Paragraph('', normal_style)])
+                                photo_table_data.append(photo_row)
+                                photo_row = []
+                        except Exception:
+                            photo_row.append([Paragraph("[Photo unavailable]", normal_style)])
+                            if len(photo_row) == 3:
+                                photo_table_data.append(photo_row)
+                                photo_row = []
+
+                    photo_table = Table(photo_table_data, colWidths=[2.33*inch, 2.33*inch, 2.33*inch])
+                    photo_table.setStyle(TableStyle([
+                        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                        ('LEFTPADDING', (0, 0), (-1, -1), 1),
+                        ('RIGHTPADDING', (0, 0), (-1, -1), 1),
                         ('TOPPADDING', (0, 0), (-1, -1), 2),
-                        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+                        ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
                     ]))
                     story.append(photo_table)
 
@@ -1409,17 +1662,17 @@ def render_answer_table(story, answers, section, subheading_style, normal_style,
     if defect_mapping is None:
         defect_mapping = {}
 
-    # Ultra-compact row style (PASS items)
+    # Ultra-compact row style
     compact_style = ParagraphStyle(
         'CompactRow',
         parent=normal_style,
         fontSize=9,
-        leftIndent=0,
-        spaceAfter=1,  # Minimal spacing between rows
+        leftIndent=8,
+        spaceAfter=1,
         leading=11
     )
 
-    # Render all answers as simple rows (no table, no header)
+    # Render all answers as simple inline text
     for idx, answer in enumerate(answers):
         status = answer.status.upper()
         item_text = answer.question.prompt
@@ -1429,76 +1682,64 @@ def render_answer_table(story, answers, section, subheading_style, normal_style,
             measurement = f"{answer.measurement_value} {answer.question.measurement_unit or ''}".strip()
             item_text += f" <b>[{measurement}]</b>"
 
-        # Build row content
-        status_text = f"<b>{status}</b>"
-
-        # Check if this item has notes or is failed
         has_notes = answer.notes and answer.notes.strip() and not (answer.notes.startswith('Question ') and ' - ' in answer.notes)
         is_failed = status == 'FAIL'
         has_defect = answer.question.id in defect_mapping
 
-        # FAIL items get background color and expanded format
+        # Build status display - FAIL gets black badge, others get plain text
         if is_failed:
-            # Use table for background color
-            fail_data = [[Paragraph(status_text, compact_style), Paragraph(item_text, compact_style)]]
-            fail_table = Table(fail_data, colWidths=[0.9*inch, 6.5*inch])
-            fail_table.setStyle(TableStyle([
-                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#ffebee')),
-                ('LEFTPADDING', (0, 0), (-1, -1), 4),
-                ('RIGHTPADDING', (0, 0), (-1, -1), 4),
-                ('TOPPADDING', (0, 0), (-1, -1), 2),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
-            ]))
-            story.append(fail_table)
-
-            # Add notes/references for failed items
-            if has_notes or has_defect:
-                # Build ANSI reference if available (avoid duplicates)
-                ansi_ref = ""
-                section_ref = answer.question.section.ansi_reference
-                question_ref = answer.question.ansi_reference
-
-                if section_ref and question_ref:
-                    # Only combine if they're different
-                    if section_ref != question_ref:
-                        ansi_ref = f"ANSI A92.2 §{section_ref}/{question_ref}"
-                    else:
-                        ansi_ref = f"ANSI A92.2 §{section_ref}"
-                elif section_ref:
-                    ansi_ref = f"ANSI A92.2 §{section_ref}"
-                elif question_ref:
-                    ansi_ref = f"ANSI A92.2 §{question_ref}"
-
-                # Add defect appendix reference
-                defect_ref = ""
-                if has_defect:
-                    defect_num = defect_mapping[answer.question.id]
-                    defect_ref = f"See Appendix A-{defect_num}"
-
-                # Combine note components
-                note_parts = []
-                if has_notes:
-                    note_parts.append(f"Note: {answer.notes}")
-                if ansi_ref:
-                    note_parts.append(f"[{ansi_ref}]")
-                if defect_ref:
-                    note_parts.append(f"({defect_ref})")
-
-                full_note = " ".join(note_parts)
-                note_style = ParagraphStyle(
-                    'FailNote',
-                    parent=normal_style,
-                    fontSize=8,
-                    leftIndent=16,
-                    textColor=colors.HexColor('#555555'),
-                    spaceAfter=3
-                )
-                story.append(Paragraph(f"<i>{full_note}</i>", note_style))
+            status_display = '<b><font color="white" backColor="black">&nbsp;FAIL&nbsp;</font></b>'
         else:
-            # PASS items - ultra-compact paragraph format
-            story.append(Paragraph(f"{status_text}  {item_text}", compact_style))
+            status_display = f'<b>{status}</b>'
 
-        # Add subtle spacing every 3 rows for visual grouping (only for PASS items)
-        if not is_failed and (idx + 1) % 3 == 0 and idx < len(answers) - 1:
+        # Single line format for all items
+        full_text = f'{status_display}  {item_text}'
+        story.append(Paragraph(full_text, compact_style))
+
+        # Add notes/references for failed items
+        if is_failed and (has_notes or has_defect):
+            # Build ANSI reference if available (avoid duplicates)
+            ansi_ref = ""
+            section_ref = answer.question.section.ansi_reference
+            question_ref = answer.question.ansi_reference
+
+            if section_ref and question_ref:
+                # Only combine if they're different
+                if section_ref != question_ref:
+                    ansi_ref = f"ANSI A92.2 §{section_ref}/{question_ref}"
+                else:
+                    ansi_ref = f"ANSI A92.2 §{section_ref}"
+            elif section_ref:
+                ansi_ref = f"ANSI A92.2 §{section_ref}"
+            elif question_ref:
+                ansi_ref = f"ANSI A92.2 §{question_ref}"
+
+            # Add defect appendix reference
+            defect_ref = ""
+            if has_defect:
+                defect_num = defect_mapping[answer.question.id]
+                defect_ref = f"See Appendix A-{defect_num}"
+
+            # Combine note components
+            note_parts = []
+            if has_notes:
+                note_parts.append(f"Note: {answer.notes}")
+            if ansi_ref:
+                note_parts.append(f"[{ansi_ref}]")
+            if defect_ref:
+                note_parts.append(f"({defect_ref})")
+
+            full_note = " ".join(note_parts)
+            note_style = ParagraphStyle(
+                'FailNote',
+                parent=normal_style,
+                fontSize=8,
+                leftIndent=20,
+                textColor=colors.HexColor('#555555'),
+                spaceAfter=3
+            )
+            story.append(Paragraph(f"<i>{full_note}</i>", note_style))
+
+        # Add subtle spacing every 4 rows for visual grouping (only for PASS items)
+        if not is_failed and (idx + 1) % 4 == 0 and idx < len(answers) - 1:
             story.append(Spacer(1, 3))

@@ -14,10 +14,12 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('inspection_id', type=int, help='ID of the inspection to complete')
         parser.add_argument('--fail', action='store_true', help='Create some failures')
+        parser.add_argument('--failures', type=int, default=None, help='Exact number of failures to create (requires --fail)')
 
     def handle(self, *args, **options):
         inspection_id = options['inspection_id']
-        create_failures = options.get('fail', False)
+        # If --failures is specified, automatically enable --fail
+        create_failures = options.get('fail', False) or (options.get('failures') is not None and options.get('failures') > 0)
 
         try:
             inspection = Inspection.objects.get(id=inspection_id)
@@ -56,8 +58,9 @@ class Command(BaseCommand):
         # Determine which questions to fail (if --fail flag is used)
         fail_indices = set()
         if create_failures:
-            # Pick 3-5 random questions to fail
-            num_failures = random.randint(3, 5)
+            # Pick specified number or 3-5 random questions to fail
+            num_failures = options.get('failures') if options.get('failures') else random.randint(3, 5)
+            num_failures = min(num_failures, len(all_questions))  # Can't fail more than available
             fail_indices = set(random.sample(range(len(all_questions)), num_failures))
 
         answers_created = 0
