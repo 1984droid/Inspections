@@ -460,13 +460,27 @@ main() {
             sudo systemctl stop inspectionapp
         fi
 
-        # Load DB password from existing .env if available
+        # Load settings from existing .env if available
         cd "$APP_DIR"
         if [ -f ".env" ]; then
             DB_PASSWORD=$(grep "^DB_PASSWORD=" .env 2>/dev/null | cut -d'=' -f2 | tr -d '\r')
             if [ -n "$DB_PASSWORD" ]; then
                 print_info "Using database password from existing .env"
                 export DB_PASSWORD
+            fi
+
+            # Extract domain name from ALLOWED_HOSTS
+            if [ -z "$DOMAIN_NAME" ]; then
+                ALLOWED_HOSTS_LINE=$(grep "^ALLOWED_HOSTS=" .env 2>/dev/null | cut -d'=' -f2 | tr -d '\r')
+                # Get first domain that's not localhost or IP
+                for host in $(echo "$ALLOWED_HOSTS_LINE" | tr ',' ' '); do
+                    if [[ "$host" != "localhost" && "$host" != "127.0.0.1" && ! "$host" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                        DOMAIN_NAME="$host"
+                        print_info "Using domain from .env: $DOMAIN_NAME"
+                        export DOMAIN_NAME
+                        break
+                    fi
+                done
             fi
         fi
 
