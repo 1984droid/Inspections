@@ -517,6 +517,10 @@ EOF
         print_info "Ensuring production database settings..."
         sed -i "s|USE_SQLITE=.*|USE_SQLITE=False|g" .env
         sed -i "s|DEBUG=.*|DEBUG=False|g" .env
+        sed -i "s|DB_NAME=.*|DB_NAME=inspectionapp|g" .env
+        sed -i "s|DB_USER=.*|DB_USER=inspectionapp|g" .env
+        sed -i "s|DB_HOST=.*|DB_HOST=localhost|g" .env
+        sed -i "s|DB_PORT=.*|DB_PORT=5432|g" .env
         if [ -n "$DB_PASSWORD" ]; then
             sed -i "s|DB_PASSWORD=.*|DB_PASSWORD=$DB_PASSWORD|g" .env
         fi
