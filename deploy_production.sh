@@ -309,7 +309,7 @@ setup_database() {
         source .venv/bin/activate
 
         # Use Django management command instead of setup.py
-        python manage.py import_templates
+        python manage.py import_a92_templates
         print_status "Templates imported successfully"
     fi
 }
