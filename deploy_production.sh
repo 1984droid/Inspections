@@ -464,10 +464,12 @@ main() {
         fi
 
         # Load DB password from existing .env if available
-        if [ -f "$APP_DIR/.env" ]; then
-            DB_PASSWORD=$(grep "^DB_PASSWORD=" "$APP_DIR/.env" 2>/dev/null | cut -d'=' -f2 | tr -d '\r')
+        cd "$APP_DIR"
+        if [ -f ".env" ]; then
+            DB_PASSWORD=$(grep "^DB_PASSWORD=" .env 2>/dev/null | cut -d'=' -f2 | tr -d '\r')
             if [ -n "$DB_PASSWORD" ]; then
                 print_info "Using database password from existing .env"
+                export DB_PASSWORD
             fi
         fi
 
